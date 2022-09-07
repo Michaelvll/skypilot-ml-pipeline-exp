@@ -51,7 +51,7 @@ for batch_size in batch_sizes:
     img_arr = image.img_to_array(img_sgl)
     img_arr2 = np.expand_dims(img_arr, axis=0)
     img_arr3 = preprocess_input(np.repeat(img_arr2, USER_BATCH_SIZE, axis=0))
-    model_feed_dict = {'input': img_arr3}
+    model_feed_dict = img_arr3
 
     # Warmup.
     _ = predictor_inferentia(model_feed_dict)
