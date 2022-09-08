@@ -265,9 +265,9 @@ def main(unused_argv):
       test_loss.reset_states()
       test_accuracy.reset_states()
 
-    checkpoint_name = checkpoint.save(os.path.join(model_dir, 'checkpoint'))
+    # checkpoint_name = checkpoint.save(os.path.join(model_dir, 'checkpoint'))
     model_saving_utils.save_model(model, model_dir)
-    logging.info('Saved checkpoint to %s', checkpoint_name)
+    # logging.info('Saved checkpoint to %s', checkpoint_name)
 
 
 if __name__ == '__main__':
