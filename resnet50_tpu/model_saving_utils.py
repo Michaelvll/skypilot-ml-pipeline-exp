@@ -43,5 +43,5 @@ def save_model(model, model_dir, weights_file):
   tf.logging.info('Saving weights and optimizer states into %s',
                   weights_file_path)
   tf.logging.info('This might take a while...')
-  model.save(model_dir)
+  model.save(model_dir, include_optimizer=False)
 
