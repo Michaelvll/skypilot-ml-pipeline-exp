@@ -35,6 +35,7 @@ from __future__ import print_function
 
 import math
 import os
+import time
 
 from absl import app
 from absl import flags
@@ -232,9 +233,12 @@ def main(unused_argv):
   for epoch in range(initial_epoch, FLAGS.num_epochs):
     logging.info('Starting to run epoch: %s', epoch)
     with train_summary_writer.as_default():
+      start_time = time.time()
       for step in range(steps_per_epoch):
-        if step % 20 == 0:
-          logging.info('Running step %s in epoch %s', step, epoch)
+        if step % 200 == 0:
+          time_per_step = (time.time() - start_time) / 100
+          start_time = time.time()
+          logging.info(f'Running step {step} in epoch {epoch} [sec/step: {time_per_step}]')
         train_step(train_iterator)
       tf.summary.scalar(
           'loss', training_loss.result().numpy(), step=optimizer.iterations)
