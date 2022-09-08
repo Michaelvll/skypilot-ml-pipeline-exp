@@ -32,7 +32,7 @@ except ImportError:
   HAS_H5PY = False
 
 
-def save_model(model, model_dir, weights_file):
+def save_model(model, model_dir):
   """Saves the model weights."""
 
   if not HAS_H5PY:
