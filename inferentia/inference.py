@@ -12,7 +12,7 @@ import pandas as pd
 #
 # If pipelining (e.g., across 4 cores) is used, this line must be commented
 # out, as the pipeline requires 1 group with 4 cores.
-os.environ['NEURONCORE_GROUP_SIZES'] = '4x1'
+os.environ['NEURON_RT_NUM_CORES'] = '4'
 # os.environ['NEURONCORE_GROUP_SIZES'] = '1,1,1,1'
 # num_workers = 4
 
