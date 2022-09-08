@@ -1,0 +1,1 @@
+../resnet50_tpu/resnet_model.py
