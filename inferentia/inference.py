@@ -60,6 +60,7 @@ for batch_size in batch_sizes:
     num_inferences = num_loops * USER_BATCH_SIZE
 
     num_inferences = 25000  # MLPerf: Offline.
+    num_inferences = 50000  # Imagenet val set
     num_inferences = int(1e6)  # MLPerf: Offline.
     num_loops = num_inferences // USER_BATCH_SIZE
 
