@@ -14,6 +14,7 @@
 # ==============================================================================
 
 r"""ResNet-50 implemented with Keras running on Cloud TPUs.
+
 This file shows how you can run ResNet-50 on a Cloud TPU using the TensorFlow
 Keras support. This is configured for ImageNet (e.g. 1000 classes), but you can
 easily adapt to your own datasets by changing the code appropriately.
@@ -33,17 +34,19 @@ from __future__ import division
 from __future__ import print_function
 
 import math
+import os
+import time
 
 from absl import app
 from absl import flags
 from absl import logging
 
-import numpy as np
 import tensorflow.compat.v2 as tf
 
 import imagenet_input
 import model_saving_utils
 import resnet_model
+
 
 # Common flags for TPU models.
 flags.DEFINE_string('tpu', None, 'Name of the TPU to use.')
@@ -52,189 +55,227 @@ flags.DEFINE_string(
     'model_dir', None,
     ('The directory where the model weights and training/evaluation summaries '
      'are stored. If not specified, save to /tmp/resnet50.'))
-
-# Special flags for Resnet50.
-flags.DEFINE_bool(
-    'eval_top_5_accuracy', True,
-    'Eval both top 1 and top 5 accuracy. Otherwise, only eval top 1 accuracy.')
 flags.DEFINE_integer('num_cores', 8, 'Number of TPU cores.')
+FLAGS = flags.FLAGS
 
 # Imagenet training and test data sets.
-NUM_CLASSES = 1000
-IMAGE_SIZE = 224
-EPOCHS = 90  # Standard imagenet training regime.
 APPROX_IMAGENET_TRAINING_IMAGES = 1281167  # Number of images in ImageNet-1k train dataset.
-IMAGENET_VALIDATION_IMAGES = 50000  # Number of eval images.
+IMAGENET_VALIDATION_IMAGES = 50000  # Number of images in eval dataset.
 PER_CORE_BATCH_SIZE = 128
+NUM_CLASSES = 1000
 
 # Training hyperparameters.
-USE_BFLOAT16 = True
-BASE_LEARNING_RATE = 0.4
-# Learning rate schedule
-LR_SCHEDULE = [    # (multiplier, epoch to start) tuples
-    (1.0, 5), (0.1, 30), (0.01, 60), (0.001, 80)
-]
-
+_EPOCHS = 90
+_USE_BFLOAT16 = True
+_BASE_LEARNING_RATE = 0.1
 DEFAULT_MODEL_DIR = '/tmp/resnet50'
-WEIGHTS_TXT = 'resnet50_weights.h5'
 
 # Allow overriding epochs, steps_per_epoch for testing
-flags.DEFINE_integer('num_epochs', EPOCHS, '')
+flags.DEFINE_integer('num_epochs', _EPOCHS, '')
 flags.DEFINE_integer(
     'steps_per_epoch', None,
     'Steps for epoch during training. If unspecified, use default value.')
-flags.DEFINE_boolean('use_bfloat16', USE_BFLOAT16, 'Use bfloat16 instead of float32.')
+flags.DEFINE_boolean('use_bfloat16', _USE_BFLOAT16, 'Use bfloat16 instead of float32.')
 
-FLAGS = flags.FLAGS
+# Learning rate schedule
+_LR_SCHEDULE = [    # (multiplier, epoch to start) tuples
+    (1.0, 5), (0.1, 30), (0.01, 60), (0.001, 80)
+]
 
 
-def learning_rate_schedule_wrapper(training_steps_per_epoch):
-  """Wrapper around the learning rate schedule."""
+class ResnetLearningRateSchedule(
+    tf.keras.optimizers.schedules.LearningRateSchedule):
+  """Resnet learning rate schedule."""
 
-  def learning_rate_schedule(current_epoch, current_batch):
-    """Handles linear scaling rule, gradual warmup, and LR decay.
-    The learning rate starts at 0, then it increases linearly per step.
-    After 5 epochs we reach the base learning rate (scaled to account
-      for batch size).
-    After 30, 60 and 80 epochs the learning rate is divided by 10.
-    After 90 epochs training stops and the LR is set to 0. This ensures
-      that we train for exactly 90 epochs for reproducibility.
-    Args:
-      current_epoch: integer, current epoch indexed from 0.
-      current_batch: integer, current batch in current epoch, indexed from 0.
-    Returns:
-      Adjusted learning rate.
-    """
-    epoch = current_epoch + float(current_batch) / training_steps_per_epoch
-    warmup_lr_multiplier, warmup_end_epoch = LR_SCHEDULE[0]
-    if epoch < warmup_end_epoch:
-      # Learning rate increases linearly per step.
-      return (BASE_LEARNING_RATE * warmup_lr_multiplier *
-              epoch / warmup_end_epoch)
-    for mult, start_epoch in LR_SCHEDULE:
-      if epoch >= start_epoch:
-        learning_rate = BASE_LEARNING_RATE * mult
-      else:
-        break
+  def __init__(self, steps_per_epoch, initial_learning_rate):
+    super(ResnetLearningRateSchedule, self).__init__()
+    self.steps_per_epoch = steps_per_epoch
+    self.initial_learning_rate = initial_learning_rate
+
+  def __call__(self, step):
+    lr_epoch = tf.cast(step, tf.float32) / self.steps_per_epoch
+    warmup_lr_multiplier, warmup_end_epoch = _LR_SCHEDULE[0]
+    learning_rate = (
+        self.initial_learning_rate * warmup_lr_multiplier * lr_epoch /
+        warmup_end_epoch)
+    for mult, start_epoch in _LR_SCHEDULE:
+      learning_rate = tf.where(lr_epoch >= start_epoch,
+                               self.initial_learning_rate * mult, learning_rate)
     return learning_rate
-  return learning_rate_schedule
+
+  def get_config(self):
+    return {
+        'steps_per_epoch': self.steps_per_epoch,
+        'initial_learning_rate': self.initial_learning_rate
+    }
 
 
-class LearningRateBatchScheduler(tf.keras.callbacks.Callback):
-  """Callback to update learning rate on every batch (not epoch boundaries).
-  N.B. Only support Keras optimizers, not TF optimizers.
-  Args:
-      schedule: a function that takes an epoch index and a batch index as input
-          (both integer, indexed from 0) and returns a new learning rate as
-          output (float).
-  """
-
-  def __init__(self, schedule):
-    super(LearningRateBatchScheduler, self).__init__()
-    self.schedule = schedule
-    self.epochs = -1
-    self.prev_lr = -1
-
-  def on_epoch_begin(self, epoch, logs=None):
-    if not hasattr(self.model.optimizer, 'lr'):
-      raise ValueError('Optimizer must have a "lr" attribute.')
-    self.epochs += 1
-
-  def on_batch_begin(self, batch, logs=None):
-    lr = self.schedule(self.epochs, batch)
-    if not isinstance(lr, (float, np.float32, np.float64)):
-      raise ValueError('The output of the "schedule" function should be float.')
-    if lr != self.prev_lr:
-      tf.keras.backend.set_value(self.model.optimizer.lr, lr)
-      self.prev_lr = lr
-      logging.debug('Epoch %05d Batch %05d: LearningRateBatchScheduler change '
-                    'learning rate to %s.', self.epochs, batch, lr)
-
-
-def sparse_top_k_categorical_accuracy(y_true, y_pred, k=5):
-  """TPU version of sparse_top_k_categorical_accuracy."""
-  y_pred_rank = tf.convert_to_tensor(y_pred).get_shape().ndims
-  y_true_rank = tf.convert_to_tensor(y_true).get_shape().ndims
-  # If the shape of y_true is (num_samples, 1), squeeze to (num_samples,)
-  if ((y_true_rank is not None) and
-      (y_pred_rank is not None) and
-      (len(tf.keras.backend.int_shape(y_true)) ==
-       len(tf.keras.backend.int_shape(y_pred)))):
-    y_true = tf.squeeze(y_true, [-1])
-
-  y_true = tf.cast(y_true, 'int32')
-  return tf.nn.in_top_k(y_true, y_pred, k)
+def safe_mean(losses):
+  total = tf.reduce_sum(losses)
+  num_elements = tf.dtypes.cast(tf.size(losses), dtype=losses.dtype)
+  return tf.math.divide_no_nan(total, num_elements)
 
 
 def main(unused_argv):
-  assert FLAGS.data is not None, 'Provide training data path via --data.'
   tf.enable_v2_behavior()
-
-  batch_size = FLAGS.num_cores * PER_CORE_BATCH_SIZE
-
-  training_steps_per_epoch = FLAGS.steps_per_epoch or (
-      int(APPROX_IMAGENET_TRAINING_IMAGES // batch_size))
-  validation_steps = int(
-      math.ceil(1.0 * IMAGENET_VALIDATION_IMAGES / batch_size))
-
-  if FLAGS.use_bfloat16:
-    policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
-    tf.keras.mixed_precision.experimental.set_policy(policy)
-
   model_dir = FLAGS.model_dir if FLAGS.model_dir else DEFAULT_MODEL_DIR
-  logging.info('Saving tensorboard summaries at %s', model_dir)
-
+  batch_size = PER_CORE_BATCH_SIZE * FLAGS.num_cores
+  steps_per_epoch = FLAGS.steps_per_epoch or (int(
+      APPROX_IMAGENET_TRAINING_IMAGES // batch_size))
+  steps_per_eval = int(1.0 * math.ceil(IMAGENET_VALIDATION_IMAGES / batch_size))
+  logging.info('Saving checkpoints at %s', model_dir)
   logging.info('Use TPU at %s', FLAGS.tpu if FLAGS.tpu is not None else 'local')
+
   resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu=FLAGS.tpu)
   tf.config.experimental_connect_to_cluster(resolver)
   tf.tpu.experimental.initialize_tpu_system(resolver)
   strategy = tf.distribute.experimental.TPUStrategy(resolver)
 
-  logging.info('Use bfloat16: %s.', FLAGS.use_bfloat16)
-  logging.info('Use global batch size: %s.', batch_size)
-  logging.info('Enable top 5 accuracy: %s.', FLAGS.eval_top_5_accuracy)
-  logging.info('Training model using data in directory "%s".', FLAGS.data)
+  imagenet_train = imagenet_input.ImageNetInput(
+      is_training=True,
+      data_dir=FLAGS.data,
+      batch_size=PER_CORE_BATCH_SIZE,
+      use_bfloat16=FLAGS.use_bfloat16)
+  imagenet_eval = imagenet_input.ImageNetInput(
+      is_training=False,
+      data_dir=FLAGS.data,
+      batch_size=PER_CORE_BATCH_SIZE,
+      use_bfloat16=FLAGS.use_bfloat16)
+  train_dataset = strategy.experimental_distribute_datasets_from_function(
+      imagenet_train.input_fn)
+  test_dataset = strategy.experimental_distribute_datasets_from_function(
+      imagenet_eval.input_fn)
+
+  if FLAGS.use_bfloat16:
+    policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
+    tf.keras.mixed_precision.experimental.set_policy(policy)
 
   with strategy.scope():
     logging.info('Building Keras ResNet-50 model')
     model = resnet_model.ResNet50(num_classes=NUM_CLASSES)
+    base_lr = _BASE_LEARNING_RATE * batch_size / 256
+    optimizer = tf.keras.optimizers.SGD(
+        learning_rate=ResnetLearningRateSchedule(steps_per_epoch, base_lr),
+        momentum=0.9,
+        nesterov=True)
+    training_loss = tf.keras.metrics.Mean('training_loss', dtype=tf.float32)
+    training_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(
+        'training_accuracy', dtype=tf.float32)
+    test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
+    test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(
+        'test_accuracy', dtype=tf.float32)
+    logging.info('Finished building Keras ResNet-50 model')
 
-    logging.info('Compiling model.')
-    metrics = ['sparse_categorical_accuracy']
+    checkpoint = tf.train.Checkpoint(model=model, optimizer=optimizer)
+    latest_checkpoint = tf.train.latest_checkpoint(model_dir)
+    initial_epoch = 0
+    if latest_checkpoint:
+      # checkpoint.restore must be within a strategy.scope() so that optimizer
+      # slot variables are mirrored.
+      checkpoint.restore(latest_checkpoint)
+      logging.info('Loaded checkpoint %s', latest_checkpoint)
+      initial_epoch = optimizer.iterations.numpy() // steps_per_epoch
 
-    if FLAGS.eval_top_5_accuracy:
-      metrics.append(sparse_top_k_categorical_accuracy)
+  # Create summary writers
+  train_summary_writer = tf.summary.create_file_writer(
+      os.path.join(model_dir, 'summaries/train'))
+  test_summary_writer = tf.summary.create_file_writer(
+      os.path.join(model_dir, 'summaries/test'))
 
-    model.compile(
-        optimizer=tf.keras.optimizers.SGD(
-            learning_rate=BASE_LEARNING_RATE, momentum=0.9, nesterov=True),
-        loss='sparse_categorical_crossentropy',
-        metrics=metrics)
+  @tf.function
+  def train_step(iterator):
+    """Training StepFn."""
+    def step_fn(inputs):
+      """Per-Replica StepFn."""
+      images, labels = inputs
+      with tf.GradientTape() as tape:
+        predictions = model(images, training=True)
+        if FLAGS.use_bfloat16:
+          predictions = tf.cast(predictions, tf.float32)
 
-  imagenet_train = imagenet_input.ImageNetInput(
-      is_training=True, data_dir=FLAGS.data, batch_size=batch_size,
-      use_bfloat16=FLAGS.use_bfloat16)
-  imagenet_eval = imagenet_input.ImageNetInput(
-      is_training=False, data_dir=FLAGS.data, batch_size=batch_size,
-      use_bfloat16=FLAGS.use_bfloat16)
+        # Loss calculations.
+        #
+        # Part 1: Prediction loss.
+        prediction_loss = tf.keras.losses.sparse_categorical_crossentropy(
+            labels, predictions)
+        loss1 = tf.reduce_mean(prediction_loss)
+        # Part 2: Model weights regularization
+        loss2 = tf.reduce_sum(model.losses)
 
-  lr_schedule_cb = LearningRateBatchScheduler(
-      schedule=learning_rate_schedule_wrapper(training_steps_per_epoch))
-  tensorboard_cb = tf.keras.callbacks.TensorBoard(
-      log_dir=model_dir)
+        # Scale the loss given the TPUStrategy will reduce sum all gradients.
+        loss = loss1 + loss2
+        scaled_loss = loss / strategy.num_replicas_in_sync
 
-  training_callbacks = [lr_schedule_cb, tensorboard_cb]
+      grads = tape.gradient(scaled_loss, model.trainable_variables)
+      optimizer.apply_gradients(zip(grads, model.trainable_variables))
+      training_loss.update_state(loss)
+      training_accuracy.update_state(labels, predictions)
 
-  model.fit(
-      imagenet_train.input_fn(),
-      epochs=FLAGS.num_epochs,
-      steps_per_epoch=training_steps_per_epoch,
-      callbacks=training_callbacks,
-      validation_data=imagenet_eval.input_fn(),
-      validation_steps=validation_steps,
-      validation_freq=5)
+    strategy.run(step_fn, args=(next(iterator),))
 
-  model_saving_utils.save_model(model, model_dir)
+  @tf.function
+  def test_step(iterator):
+    """Evaluation StepFn."""
+    def step_fn(inputs):
+      images, labels = inputs
+      predictions = model(images, training=False)
+      if FLAGS.use_bfloat16:
+        predictions = tf.cast(predictions, tf.float32)
+      loss = tf.keras.losses.sparse_categorical_crossentropy(labels,
+                                                             predictions)
+      loss = safe_mean(loss)
+      test_loss.update_state(loss)
+      test_accuracy.update_state(labels, predictions)
+
+    strategy.run(step_fn, args=(next(iterator),))
+  step_interval = 200
+  train_iterator = iter(train_dataset)
+  for epoch in range(initial_epoch, FLAGS.num_epochs):
+    epoch_start_time = time.time()
+    logging.info('Starting to run epoch: %s', epoch)
+    with train_summary_writer.as_default():
+      start_time = time.time()
+      for step in range(steps_per_epoch):
+        if step % step_interval == 0:
+          time_per_step = (time.time() - start_time) / step_interval
+          logging.info(f'Running step {step} in epoch {epoch} [sec/step: {time_per_step}]')
+          start_time = time.time()
+        train_step(train_iterator)  
+      tf.summary.scalar(
+          'loss', training_loss.result().numpy(), step=optimizer.iterations)
+      tf.summary.scalar(
+          'accuracy',
+          training_accuracy.result().numpy(),
+          step=optimizer.iterations)
+      logging.info('Training loss: %s, accuracy: %s%%',
+                   round(training_loss.result().numpy(), 4),
+                   round(training_accuracy.result().numpy() * 100, 2))
+      training_loss.reset_states()
+      training_accuracy.reset_states()
+    epoch_time = time.time() - epoch_start_time
+    logging.info(f'Epoch time: {epoch_time}; Seconds per step: {epoch_time / steps_per_epoch}')
+
+    with test_summary_writer.as_default():
+      test_iterator = iter(test_dataset)
+      for step in range(steps_per_eval):
+        if step % 20 == 0:
+          logging.info('Starting to run eval step %s of epoch: %s', step,
+                       epoch)
+        test_step(test_iterator)
+      tf.summary.scalar(
+          'loss', test_loss.result().numpy(), step=optimizer.iterations)
+      tf.summary.scalar(
+          'accuracy', test_accuracy.result().numpy(), step=optimizer.iterations)
+      logging.info('Test loss: %s, accuracy: %s%%',
+                   round(test_loss.result().numpy(), 4),
+                   round(test_accuracy.result().numpy() * 100, 2))
+      test_loss.reset_states()
+      test_accuracy.reset_states()
+
+    # checkpoint_name = checkpoint.save(os.path.join(model_dir, 'checkpoint'))
+    model_saving_utils.save_model(model, model_dir)
+    # logging.info('Saved checkpoint to %s', checkpoint_name)
+
 
 if __name__ == '__main__':
   logging.set_verbosity(logging.INFO)
