@@ -41,5 +41,5 @@ def save_model(model, model_dir):
 
   tf.logging.info('This might take a while...')
   saved_model_path = os.path.join(model_dir, 'saved_model')
-  model.save(model_dir, include_optimizer=False)
+  model.save(saved_model_path, include_optimizer=False)
 
