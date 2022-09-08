@@ -231,15 +231,17 @@ def main(unused_argv):
   step_interval = 200
   train_iterator = iter(train_dataset)
   for epoch in range(initial_epoch, FLAGS.num_epochs):
+    epoch_start_time = time.time()
     logging.info('Starting to run epoch: %s', epoch)
     with train_summary_writer.as_default():
       start_time = time.time()
       for step in range(steps_per_epoch):
         if step % step_interval == 0:
           time_per_step = (time.time() - start_time) / step_interval
-          start_time = time.time()
           logging.info(f'Running step {step} in epoch {epoch} [sec/step: {time_per_step}]')
-        train_step(train_iterator)
+          start_time = time.time()
+        train_step(train_iterator)  
+      logging.info(f'Epoch time: {time.time() - epoch_start_time}')
       tf.summary.scalar(
           'loss', training_loss.result().numpy(), step=optimizer.iterations)
       tf.summary.scalar(
