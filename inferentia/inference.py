@@ -1,3 +1,4 @@
+import argparse
 import os
 import time
 import numpy as np
@@ -8,6 +9,11 @@ from concurrent import futures
 
 import pandas as pd
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--float16', action='store_true')
+args = parser.parse_args()
+
 # The following line creates 4 groups, each having 1 core.
 #
 # If pipelining (e.g., across 4 cores) is used, this line must be commented
@@ -16,6 +22,9 @@ os.environ['NEURON_RT_NUM_CORES'] = '4'
 # os.environ['NEURONCORE_GROUP_SIZES'] = '1,1,1,1'
 # num_workers = 4
 
+if args.float16:
+    policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
+    tf.keras.mixed_precision.experimental.set_policy(policy)
 
 def RunOneBatch(model, inputs):
     start = time.time()

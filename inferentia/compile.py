@@ -12,6 +12,10 @@ MODEL_DIR = 'keras-resnet50'
 COMPILED_MODEL_DIR = 'compiled-keras-resnet50'
 model=tf.keras.models.load_model(MODEL_DIR)
 
+if args.float16:
+    policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
+    tf.keras.mixed_precision.experimental.set_policy(policy)
+
 batch_sizes = [16]
 for batch_size in batch_sizes:
     dtype = np.float16 if args.float16 else np.float32
