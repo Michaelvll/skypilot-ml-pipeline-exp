@@ -194,6 +194,10 @@ def main(unused_argv):
   logging.info('Enable top 5 accuracy: %s.', FLAGS.eval_top_5_accuracy)
   logging.info('Training model using data in directory "%s".', FLAGS.data)
 
+  if FLAGS.use_bfloat16:
+    policy = tf.keras.mixed_precision.Policy('mixed_bfloat16')
+    tf.keras.mixed_precision.set_global_policy(policy)
+
   with strategy.scope():
     logging.info('Building Keras ResNet-50 model')
     model = resnet_model.ResNet50(num_classes=NUM_CLASSES)
