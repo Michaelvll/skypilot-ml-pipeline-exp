@@ -34,14 +34,12 @@ except ImportError:
 
 def save_model(model, model_dir, weights_file):
   """Saves the model weights."""
-  weights_file_path = os.path.join(model_dir, weights_file)
 
   if not HAS_H5PY:
     tf.logging.warning('`h5py` is not installed. Skip saving model weights.')
     return
 
-  tf.logging.info('Saving weights and optimizer states into %s',
-                  weights_file_path)
   tf.logging.info('This might take a while...')
+  saved_model_path = os.path.join(model_dir, 'saved_model')
   model.save(model_dir, include_optimizer=False)
 
