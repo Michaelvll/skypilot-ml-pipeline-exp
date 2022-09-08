@@ -7,6 +7,8 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet50 import preprocess_input
 from concurrent import futures
 
+from resnet_model import ResNet50
+
 import pandas as pd
 
 
@@ -23,8 +25,7 @@ os.environ['NEURON_RT_NUM_CORES'] = '4'
 # num_workers = 4
 
 if args.float16:
-    policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
-    tf.keras.mixed_precision.experimental.set_policy(policy)
+    tf.keras.backend.set_floatx('float16')
 
 def RunOneBatch(model, inputs):
     start = time.time()
@@ -52,15 +53,15 @@ for batch_size in batch_sizes:
     # Load model
     compiled_model_dir = f'{COMPILED_MODEL_DIR}_batch' + str(batch_size)
 
-    model = tf.keras.models.load_model(compiled_model_dir)
-    predictor_inferentia = lambda x: model(x, training=False)
+    model = tf.contrib.predictor.from_saved_model(compiled_model_dir)
+    predictor_inferentia = model
 
     # Create input from image.
     img_sgl = image.load_img('kitten_small.jpg', target_size=(224, 224))
     img_arr = image.img_to_array(img_sgl)
     img_arr2 = np.expand_dims(img_arr, axis=0)
     img_arr3 = preprocess_input(np.repeat(img_arr2, USER_BATCH_SIZE, axis=0))
-    model_feed_dict = img_arr3
+    model_feed_dict = {'input': img_arr3}
 
     # Warmup.
     _ = predictor_inferentia(model_feed_dict)
