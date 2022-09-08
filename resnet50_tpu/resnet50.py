@@ -257,6 +257,7 @@ def main(unused_argv):
 
     with test_summary_writer.as_default():
       test_iterator = iter(test_dataset)
+      logging.info('got test iterator')
       for step in range(steps_per_eval):
         if step % 20 == 0:
           logging.info('Starting to run eval step %s of epoch: %s', step,
