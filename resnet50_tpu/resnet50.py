@@ -195,8 +195,7 @@ def main(unused_argv):
   logging.info('Training model using data in directory "%s".', FLAGS.data)
 
   if FLAGS.use_bfloat16:
-    policy = tf.keras.mixed_precision.Policy('mixed_bfloat16')
-    tf.keras.mixed_precision.set_global_policy(policy)
+    tf.keras.mixed_precision.set_global_policy('mixed_bfloat16')
 
   with strategy.scope():
     logging.info('Building Keras ResNet-50 model')
