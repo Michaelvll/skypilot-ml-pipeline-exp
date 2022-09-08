@@ -228,15 +228,15 @@ def main(unused_argv):
       test_accuracy.update_state(labels, predictions)
 
     strategy.run(step_fn, args=(next(iterator),))
-
+  step_interval = 200
   train_iterator = iter(train_dataset)
   for epoch in range(initial_epoch, FLAGS.num_epochs):
     logging.info('Starting to run epoch: %s', epoch)
     with train_summary_writer.as_default():
       start_time = time.time()
       for step in range(steps_per_epoch):
-        if step % 200 == 0:
-          time_per_step = (time.time() - start_time) / 100
+        if step % step_interval == 0:
+          time_per_step = (time.time() - start_time) / step_interval
           start_time = time.time()
           logging.info(f'Running step {step} in epoch {epoch} [sec/step: {time_per_step}]')
         train_step(train_iterator)
