@@ -233,27 +233,27 @@ def main(unused_argv):
   for epoch in range(initial_epoch, FLAGS.num_epochs):
     epoch_start_time = time.time()
     logging.info('Starting to run epoch: %s', epoch)
-    with train_summary_writer.as_default():
-      start_time = time.time()
-      for step in range(steps_per_epoch):
-        if step % step_interval == 0:
-          time_per_step = (time.time() - start_time) / step_interval
-          logging.info(f'Running step {step} in epoch {epoch} [sec/step: {time_per_step}]')
-          start_time = time.time()
-        train_step(train_iterator)  
-      tf.summary.scalar(
-          'loss', training_loss.result().numpy(), step=optimizer.iterations)
-      tf.summary.scalar(
-          'accuracy',
-          training_accuracy.result().numpy(),
-          step=optimizer.iterations)
-      logging.info('Training loss: %s, accuracy: %s%%',
-                   round(training_loss.result().numpy(), 4),
-                   round(training_accuracy.result().numpy() * 100, 2))
-      training_loss.reset_states()
-      training_accuracy.reset_states()
+    # with train_summary_writer.as_default():
+    start_time = time.time()
+    for step in range(steps_per_epoch):
+      if step % step_interval == 0:
+        time_per_step = (time.time() - start_time) / step_interval
+        logging.info(f'Running step {step} in epoch {epoch} [sec/step: {time_per_step}]')
+        start_time = time.time()
+      train_step(train_iterator)  
     epoch_time = time.time() - epoch_start_time
     logging.info(f'Epoch time: {epoch_time}; Seconds per step: {epoch_time / steps_per_epoch}')
+      # tf.summary.scalar(
+      #     'loss', training_loss.result().numpy(), step=optimizer.iterations)
+      # tf.summary.scalar(
+      #     'accuracy',
+      #     training_accuracy.result().numpy(),
+      #     step=optimizer.iterations)
+      # logging.info('Training loss: %s, accuracy: %s%%',
+      #              round(training_loss.result().numpy(), 4),
+      #              round(training_accuracy.result().numpy() * 100, 2))
+      # training_loss.reset_states()
+      # training_accuracy.reset_states()
 
     with test_summary_writer.as_default():
       test_iterator = iter(test_dataset)
