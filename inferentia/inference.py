@@ -86,7 +86,7 @@ for batch_size in batch_sizes:
         for i, fut in enumerate(fut_list):
             duration_ms[i] = fut.result()
             if i != 0 and i % 100 == 0:
-                print(f'Finished {i} / {num_loops} -- throughput: {i / (time.time() - start):.2f} images/sec')
+                print(f'Finished {i} / {num_loops} -- throughput: {i*USER_BATCH_SIZE / (time.time() - start):.2f} images/sec')
     elapsed_time = time.time() - start
 
     mean_latency = np.mean(duration_ms)
