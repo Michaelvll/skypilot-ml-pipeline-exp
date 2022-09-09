@@ -7,8 +7,6 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet50 import preprocess_input
 from concurrent import futures
 
-from resnet_model import ResNet50
-
 import pandas as pd
 
 
@@ -88,7 +86,7 @@ for batch_size in batch_sizes:
         for i, fut in enumerate(fut_list):
             duration_ms[i] = fut.result()
             if i != 0 and i % 100 == 0:
-                print(f'Finished {i} -- avg duration: {np.mean(duration_ms[:i])} ms')
+                print(f'Finished {i} / {num_loops} -- throughput: {i / (time.time() - start):.2f} images/sec')
     elapsed_time = time.time() - start
 
     mean_latency = np.mean(duration_ms)
