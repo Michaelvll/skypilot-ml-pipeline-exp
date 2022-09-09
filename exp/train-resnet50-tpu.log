@@ -1,0 +1,204 @@
+2022-09-09 03:14:04.278847: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory
+2022-09-09 03:14:04.278893: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+I0909 03:14:05.872365 140685206337344 resnet50.py:126] Saving checkpoints at gs://skypilot-pipeline-model/resnet-realImagenet-float16
+I0909 03:14:05.872770 140685206337344 resnet50.py:127] Use TPU at test-chain-app-0-train-op
+I0909 03:14:05.884192 140685206337344 discovery.py:280] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/tpu/v1/rest
+I0909 03:14:05.959510 140685206337344 discovery.py:911] URL being requested: GET https://tpu.googleapis.com/v1/projects/intercloud-320520/locations/us-central1-b/nodes/test-chain-app-0-train-op?alt=json
+I0909 03:14:05.959728 140685206337344 transport.py:157] Attempting refresh to obtain initial access_token
+I0909 03:14:05.959917 140685206337344 client.py:777] Refreshing access_token
+I0909 03:14:06.137519 140685206337344 discovery.py:280] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/tpu/v1/rest
+I0909 03:14:06.213416 140685206337344 discovery.py:911] URL being requested: GET https://tpu.googleapis.com/v1/projects/intercloud-320520/locations/us-central1-b/nodes/test-chain-app-0-train-op?alt=json
+I0909 03:14:06.213728 140685206337344 transport.py:157] Attempting refresh to obtain initial access_token
+I0909 03:14:06.213960 140685206337344 client.py:777] Refreshing access_token
+2022-09-09 03:14:06.391600: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcuda.so.1'; dlerror: libcuda.so.1: cannot open shared object file: No such file or directory
+2022-09-09 03:14:06.391646: W tensorflow/stream_executor/cuda/cuda_driver.cc:326] failed call to cuInit: UNKNOWN ERROR (303)
+2022-09-09 03:14:06.391677: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:156] kernel driver does not appear to be running on this host (ray-test-chain-app-0-train-op-head-b96e91fa-compute): /proc/driver/nvidia/version does not exist
+I0909 03:14:06.392449 140685206337344 discovery.py:280] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/tpu/v1/rest
+I0909 03:14:06.459193 140685206337344 discovery.py:911] URL being requested: GET https://tpu.googleapis.com/v1/projects/intercloud-320520/locations/us-central1-b/nodes/test-chain-app-0-train-op?alt=json
+I0909 03:14:06.459404 140685206337344 transport.py:157] Attempting refresh to obtain initial access_token
+I0909 03:14:06.459629 140685206337344 client.py:777] Refreshing access_token
+I0909 03:14:06.628686 140685206337344 discovery.py:280] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/tpu/v1/rest
+I0909 03:14:06.699059 140685206337344 discovery.py:911] URL being requested: GET https://tpu.googleapis.com/v1/projects/intercloud-320520/locations/us-central1-b/nodes/test-chain-app-0-train-op?alt=json
+I0909 03:14:06.699265 140685206337344 transport.py:157] Attempting refresh to obtain initial access_token
+I0909 03:14:06.699482 140685206337344 client.py:777] Refreshing access_token
+2022-09-09 03:14:06.875015: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2022-09-09 03:14:06.895060: I tensorflow/core/distributed_runtime/rpc/grpc_channel.cc:301] Initialize GrpcChannelCache for job worker -> {0 -> 10.1.9.98:8470}
+2022-09-09 03:14:06.895118: I tensorflow/core/distributed_runtime/rpc/grpc_channel.cc:301] Initialize GrpcChannelCache for job localhost -> {0 -> localhost:56015}
+2022-09-09 03:14:06.913292: I tensorflow/core/distributed_runtime/rpc/grpc_channel.cc:301] Initialize GrpcChannelCache for job worker -> {0 -> 10.1.9.98:8470}
+2022-09-09 03:14:06.913348: I tensorflow/core/distributed_runtime/rpc/grpc_channel.cc:301] Initialize GrpcChannelCache for job localhost -> {0 -> localhost:56015}
+2022-09-09 03:14:06.914158: I tensorflow/core/distributed_runtime/rpc/grpc_server_lib.cc:411] Started server with target: grpc://localhost:56015
+I0909 03:14:06.915040 140685206337344 remote.py:218] Entering into master device scope: /job:worker/replica:0/task:0/device:CPU:0
+INFO:tensorflow:Initializing the TPU system: test-chain-app-0-train-op
+I0909 03:14:06.915410 140685206337344 tpu_strategy_util.py:74] Initializing the TPU system: test-chain-app-0-train-op
+INFO:tensorflow:Clearing out eager caches
+I0909 03:14:13.039066 140685206337344 tpu_strategy_util.py:109] Clearing out eager caches
+INFO:tensorflow:Finished initializing TPU system.
+I0909 03:14:13.041746 140685206337344 tpu_strategy_util.py:135] Finished initializing TPU system.
+W0909 03:14:13.043066 140685206337344 tpu_strategy.py:637] `tf.distribute.experimental.TPUStrategy` is deprecated, please use  the non experimental symbol `tf.distribute.TPUStrategy` instead.
+I0909 03:14:13.043884 140685206337344 discovery.py:280] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/tpu/v1/rest
+I0909 03:14:13.128700 140685206337344 discovery.py:911] URL being requested: GET https://tpu.googleapis.com/v1/projects/intercloud-320520/locations/us-central1-b/nodes/test-chain-app-0-train-op?alt=json
+I0909 03:14:13.128920 140685206337344 transport.py:157] Attempting refresh to obtain initial access_token
+I0909 03:14:13.129113 140685206337344 client.py:777] Refreshing access_token
+I0909 03:14:13.311568 140685206337344 discovery.py:280] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/tpu/v1/rest
+I0909 03:14:13.381688 140685206337344 discovery.py:911] URL being requested: GET https://tpu.googleapis.com/v1/projects/intercloud-320520/locations/us-central1-b/nodes/test-chain-app-0-train-op?alt=json
+I0909 03:14:13.381883 140685206337344 transport.py:157] Attempting refresh to obtain initial access_token
+I0909 03:14:13.382012 140685206337344 client.py:777] Refreshing access_token
+INFO:tensorflow:Found TPU system:
+I0909 03:14:13.543843 140685206337344 tpu_system_metadata.py:159] Found TPU system:
+INFO:tensorflow:*** Num TPU Cores: 8
+I0909 03:14:13.544085 140685206337344 tpu_system_metadata.py:160] *** Num TPU Cores: 8
+INFO:tensorflow:*** Num TPU Workers: 1
+I0909 03:14:13.544399 140685206337344 tpu_system_metadata.py:161] *** Num TPU Workers: 1
+INFO:tensorflow:*** Num TPU Cores Per Worker: 8
+I0909 03:14:13.544497 140685206337344 tpu_system_metadata.py:163] *** Num TPU Cores Per Worker: 8
+INFO:tensorflow:*** Available Device: _DeviceAttributes(/job:localhost/replica:0/task:0/device:CPU:0, CPU, 0, 0)
+I0909 03:14:13.544673 140685206337344 tpu_system_metadata.py:165] *** Available Device: _DeviceAttributes(/job:localhost/replica:0/task:0/device:CPU:0, CPU, 0, 0)
+INFO:tensorflow:*** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:CPU:0, CPU, 0, 0)
+I0909 03:14:13.544866 140685206337344 tpu_system_metadata.py:165] *** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:CPU:0, CPU, 0, 0)
+INFO:tensorflow:*** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:0, TPU, 0, 0)
+I0909 03:14:13.544952 140685206337344 tpu_system_metadata.py:165] *** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:0, TPU, 0, 0)
+INFO:tensorflow:*** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:1, TPU, 0, 0)
+I0909 03:14:13.545032 140685206337344 tpu_system_metadata.py:165] *** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:1, TPU, 0, 0)
+INFO:tensorflow:*** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:2, TPU, 0, 0)
+I0909 03:14:13.545119 140685206337344 tpu_system_metadata.py:165] *** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:2, TPU, 0, 0)
+INFO:tensorflow:*** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:3, TPU, 0, 0)
+I0909 03:14:13.545186 140685206337344 tpu_system_metadata.py:165] *** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:3, TPU, 0, 0)
+INFO:tensorflow:*** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:4, TPU, 0, 0)
+I0909 03:14:13.545265 140685206337344 tpu_system_metadata.py:165] *** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:4, TPU, 0, 0)
+INFO:tensorflow:*** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:5, TPU, 0, 0)
+I0909 03:14:13.545338 140685206337344 tpu_system_metadata.py:165] *** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:5, TPU, 0, 0)
+INFO:tensorflow:*** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:6, TPU, 0, 0)
+I0909 03:14:13.545437 140685206337344 tpu_system_metadata.py:165] *** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:6, TPU, 0, 0)
+INFO:tensorflow:*** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:7, TPU, 0, 0)
+I0909 03:14:13.545516 140685206337344 tpu_system_metadata.py:165] *** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU:7, TPU, 0, 0)
+INFO:tensorflow:*** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU_SYSTEM:0, TPU_SYSTEM, 0, 0)
+I0909 03:14:13.545589 140685206337344 tpu_system_metadata.py:165] *** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:TPU_SYSTEM:0, TPU_SYSTEM, 0, 0)
+INFO:tensorflow:*** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:XLA_CPU:0, XLA_CPU, 0, 0)
+I0909 03:14:13.545691 140685206337344 tpu_system_metadata.py:165] *** Available Device: _DeviceAttributes(/job:worker/replica:0/task:0/device:XLA_CPU:0, XLA_CPU, 0, 0)
+WARNING:tensorflow:From resnet50_tpu/resnet50.py:145: StrategyBase.experimental_distribute_datasets_from_function (from tensorflow.python.distribute.distribute_lib) is deprecated and will be removed in a future version.
+Instructions for updating:
+rename to distribute_datasets_from_function
+W0909 03:14:13.546215 140685206337344 deprecation.py:336] From resnet50_tpu/resnet50.py:145: StrategyBase.experimental_distribute_datasets_from_function (from tensorflow.python.distribute.distribute_lib) is deprecated and will be removed in a future version.
+Instructions for updating:
+rename to distribute_datasets_from_function
+WARNING:tensorflow:From /home/gcpuser/sky_workdir/codebase/resnet50_tpu/imagenet_input.py:154: map_and_batch (from tensorflow.python.data.experimental.ops.batching) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.map(map_func, num_parallel_calls)` followed by `tf.data.Dataset.batch(batch_size, drop_remainder)`. Static tf.data optimizations will take care of using the fused implementation.
+W0909 03:14:13.777870 140685206337344 deprecation.py:336] From /home/gcpuser/sky_workdir/codebase/resnet50_tpu/imagenet_input.py:154: map_and_batch (from tensorflow.python.data.experimental.ops.batching) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.map(map_func, num_parallel_calls)` followed by `tf.data.Dataset.batch(batch_size, drop_remainder)`. Static tf.data optimizations will take care of using the fused implementation.
+WARNING:tensorflow:From /opt/conda/envs/resnet/lib/python3.7/site-packages/tensorflow/python/util/dispatch.py:206: sample_distorted_bounding_box (from tensorflow.python.ops.image_ops_impl) is deprecated and will be removed in a future version.
+Instructions for updating:
+`seed2` arg is deprecated.Use sample_distorted_bounding_box_v2 instead.
+W0909 03:14:14.216372 140685206337344 deprecation.py:336] From /opt/conda/envs/resnet/lib/python3.7/site-packages/tensorflow/python/util/dispatch.py:206: sample_distorted_bounding_box (from tensorflow.python.ops.image_ops_impl) is deprecated and will be removed in a future version.
+Instructions for updating:
+`seed2` arg is deprecated.Use sample_distorted_bounding_box_v2 instead.
+I0909 03:14:14.688297 140685206337344 resnet50.py:154] Building Keras ResNet-50 model
+I0909 03:14:24.474045 140685206337344 resnet50.py:167] Finished building Keras ResNet-50 model
+I0909 03:14:25.036366 140685206337344 resnet50.py:235] Starting to run epoch: 0
+I0909 03:14:25.036676 140685206337344 resnet50.py:241] Running step 0 in epoch 0 [sec/step: 1.7881393432617187e-08]
+I0909 03:14:45.611353 140685206337344 resnet50.py:241] Running step 200 in epoch 0 [sec/step: 0.10287256002426147]
+I0909 03:14:46.434446 140685206337344 resnet50.py:241] Running step 400 in epoch 0 [sec/step: 0.004114258289337158]
+I0909 03:14:47.257017 140685206337344 resnet50.py:241] Running step 600 in epoch 0 [sec/step: 0.004111722707748413]
+I0909 03:14:48.142043 140685206337344 resnet50.py:241] Running step 800 in epoch 0 [sec/step: 0.004424004554748535]
+I0909 03:14:48.955632 140685206337344 resnet50.py:241] Running step 1000 in epoch 0 [sec/step: 0.004066671133041382]
+I0909 03:14:49.778565 140685206337344 resnet50.py:241] Running step 1200 in epoch 0 [sec/step: 0.00411336898803711]
+I0909 03:18:48.128073 140685206337344 resnet50.py:252] Training loss: 11.0398, accuracy: 3.57%
+I0909 03:18:48.128325 140685206337344 resnet50.py:254] Epoch time: 263.0920009613037; Seconds per step: 0.21030535648385587
+I0909 03:18:48.570446 140685206337344 resnet50.py:260] got test iterator
+I0909 03:18:48.570658 140685206337344 resnet50.py:264] Starting to run eval step 0 of epoch: 0
+I0909 03:18:49.109245 140685206337344 tpu.py:1377] TPU has inputs with dynamic shapes: [<tf.Tensor 'Const:0' shape=() dtype=int32>, <tf.Tensor 'cond_8/Identity:0' shape=(None, 224, 224, 3) dtype=bfloat16>, <tf.Tensor 'cond_8/Identity_1:0' shape=(None, 1) dtype=float32>]
+I0909 03:18:50.423604 140685206337344 resnet50.py:264] Starting to run eval step 20 of epoch: 0
+I0909 03:18:50.471497 140685206337344 resnet50.py:264] Starting to run eval step 40 of epoch: 0
+I0909 03:19:09.594426 140685206337344 resnet50.py:272] Test loss: 5.674, accuracy: 5.38%
+INFO:tensorflow:This might take a while...
+I0909 03:19:09.622859 140685206337344 model_saving_utils.py:43] This might take a while...
+WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+W0909 03:19:09.623262 140685206337344 saving_utils.py:319] Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+INFO:tensorflow:Saved model weights to gs://skypilot-pipeline-model/resnet-realImagenet-float16/saved_weights.h5...
+I0909 03:19:11.711596 140685206337344 model_saving_utils.py:51] Saved model weights to gs://skypilot-pipeline-model/resnet-realImagenet-float16/saved_weights.h5...
+I0909 03:19:13.721973 140685206337344 resnet50.py:235] Starting to run epoch: 1
+I0909 03:19:13.722251 140685206337344 resnet50.py:241] Running step 0 in epoch 1 [sec/step: 2.384185791015625e-08]
+I0909 03:19:14.533333 140685206337344 resnet50.py:241] Running step 200 in epoch 1 [sec/step: 0.004054769277572632]
+I0909 03:19:15.346383 140685206337344 resnet50.py:241] Running step 400 in epoch 1 [sec/step: 0.004064131975173951]
+I0909 03:19:16.188616 140685206337344 resnet50.py:241] Running step 600 in epoch 1 [sec/step: 0.004210022687911988]
+I0909 03:19:17.029270 140685206337344 resnet50.py:241] Running step 800 in epoch 1 [sec/step: 0.004202089309692383]
+I0909 03:19:17.839828 140685206337344 resnet50.py:241] Running step 1000 in epoch 1 [sec/step: 0.0040515148639678955]
+I0909 03:19:18.619297 140685206337344 resnet50.py:241] Running step 1200 in epoch 1 [sec/step: 0.0038961303234100342]
+I0909 03:22:27.932500 140685206337344 resnet50.py:252] Training loss: 7.8186, accuracy: 18.13%
+I0909 03:22:27.932782 140685206337344 resnet50.py:254] Epoch time: 194.21084213256836; Seconds per step: 0.15524447812355585
+I0909 03:22:28.385044 140685206337344 resnet50.py:260] got test iterator
+I0909 03:22:28.385301 140685206337344 resnet50.py:264] Starting to run eval step 0 of epoch: 1
+I0909 03:22:28.439477 140685206337344 resnet50.py:264] Starting to run eval step 20 of epoch: 1
+I0909 03:22:28.492918 140685206337344 resnet50.py:264] Starting to run eval step 40 of epoch: 1
+I0909 03:22:37.504529 140685206337344 resnet50.py:272] Test loss: 3.8642, accuracy: 22.13%
+INFO:tensorflow:This might take a while...
+I0909 03:22:37.536614 140685206337344 model_saving_utils.py:43] This might take a while...
+WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+W0909 03:22:37.536989 140685206337344 saving_utils.py:319] Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+INFO:tensorflow:Saved model weights to gs://skypilot-pipeline-model/resnet-realImagenet-float16/saved_weights.h5...
+I0909 03:22:40.384192 140685206337344 model_saving_utils.py:51] Saved model weights to gs://skypilot-pipeline-model/resnet-realImagenet-float16/saved_weights.h5...
+I0909 03:22:41.146745 140685206337344 resnet50.py:235] Starting to run epoch: 2
+I0909 03:22:41.146986 140685206337344 resnet50.py:241] Running step 0 in epoch 2 [sec/step: 2.384185791015625e-08]
+I0909 03:22:41.949100 140685206337344 resnet50.py:241] Running step 200 in epoch 2 [sec/step: 0.004009989500045777]
+I0909 03:22:42.711263 140685206337344 resnet50.py:241] Running step 400 in epoch 2 [sec/step: 0.003809654712677002]
+I0909 03:22:43.498360 140685206337344 resnet50.py:241] Running step 600 in epoch 2 [sec/step: 0.003934396505355835]
+I0909 03:22:44.261138 140685206337344 resnet50.py:241] Running step 800 in epoch 2 [sec/step: 0.0038127684593200683]
+I0909 03:22:45.017823 140685206337344 resnet50.py:241] Running step 1000 in epoch 2 [sec/step: 0.0037818324565887453]
+I0909 03:22:45.766937 140685206337344 resnet50.py:241] Running step 1200 in epoch 2 [sec/step: 0.003744332790374756]
+I0909 03:25:58.134649 140685206337344 resnet50.py:252] Training loss: 5.5212, accuracy: 28.69%
+I0909 03:25:58.134913 140685206337344 resnet50.py:254] Epoch time: 196.98819780349731; Seconds per step: 0.157464586573539
+I0909 03:25:58.594871 140685206337344 resnet50.py:260] got test iterator
+I0909 03:25:58.595102 140685206337344 resnet50.py:264] Starting to run eval step 0 of epoch: 2
+I0909 03:25:58.651777 140685206337344 resnet50.py:264] Starting to run eval step 20 of epoch: 2
+I0909 03:25:58.709171 140685206337344 resnet50.py:264] Starting to run eval step 40 of epoch: 2
+I0909 03:26:07.449889 140685206337344 resnet50.py:272] Test loss: 3.4937, accuracy: 27.37%
+INFO:tensorflow:This might take a while...
+I0909 03:26:07.484713 140685206337344 model_saving_utils.py:43] This might take a while...
+WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+W0909 03:26:07.485133 140685206337344 saving_utils.py:319] Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+INFO:tensorflow:Saved model weights to gs://skypilot-pipeline-model/resnet-realImagenet-float16/saved_weights.h5...
+I0909 03:26:10.177848 140685206337344 model_saving_utils.py:51] Saved model weights to gs://skypilot-pipeline-model/resnet-realImagenet-float16/saved_weights.h5...
+I0909 03:26:11.407232 140685206337344 resnet50.py:235] Starting to run epoch: 3
+I0909 03:26:11.407464 140685206337344 resnet50.py:241] Running step 0 in epoch 3 [sec/step: 2.1457672119140624e-08]
+I0909 03:26:12.199528 140685206337344 resnet50.py:241] Running step 200 in epoch 3 [sec/step: 0.003959693908691406]
+I0909 03:26:13.023809 140685206337344 resnet50.py:241] Running step 400 in epoch 3 [sec/step: 0.004120186567306518]
+I0909 03:26:13.809483 140685206337344 resnet50.py:241] Running step 600 in epoch 3 [sec/step: 0.003927186727523803]
+I0909 03:26:14.584915 140685206337344 resnet50.py:241] Running step 800 in epoch 3 [sec/step: 0.0038760244846343995]
+I0909 03:26:15.383018 140685206337344 resnet50.py:241] Running step 1000 in epoch 3 [sec/step: 0.003989425897598267]
+I0909 03:26:16.178624 140685206337344 resnet50.py:241] Running step 1200 in epoch 3 [sec/step: 0.003976843357086182]
+I0909 03:29:30.681283 140685206337344 resnet50.py:252] Training loss: 4.4096, accuracy: 33.76%
+I0909 03:29:30.681532 140685206337344 resnet50.py:254] Epoch time: 199.27435088157654; Seconds per step: 0.15929204706760713
+I0909 03:29:31.383952 140685206337344 resnet50.py:260] got test iterator
+I0909 03:29:31.384228 140685206337344 resnet50.py:264] Starting to run eval step 0 of epoch: 3
+I0909 03:29:31.442100 140685206337344 resnet50.py:264] Starting to run eval step 20 of epoch: 3
+I0909 03:29:31.499048 140685206337344 resnet50.py:264] Starting to run eval step 40 of epoch: 3
+I0909 03:29:40.335726 140685206337344 resnet50.py:272] Test loss: 3.8748, accuracy: 23.69%
+INFO:tensorflow:This might take a while...
+I0909 03:29:40.369504 140685206337344 model_saving_utils.py:43] This might take a while...
+WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+W0909 03:29:40.369904 140685206337344 saving_utils.py:319] Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+INFO:tensorflow:Saved model weights to gs://skypilot-pipeline-model/resnet-realImagenet-float16/saved_weights.h5...
+I0909 03:29:43.138023 140685206337344 model_saving_utils.py:51] Saved model weights to gs://skypilot-pipeline-model/resnet-realImagenet-float16/saved_weights.h5...
+I0909 03:29:43.937931 140685206337344 resnet50.py:235] Starting to run epoch: 4
+I0909 03:29:43.938206 140685206337344 resnet50.py:241] Running step 0 in epoch 4 [sec/step: 2.384185791015625e-08]
+I0909 03:29:44.760945 140685206337344 resnet50.py:241] Running step 200 in epoch 4 [sec/step: 0.004113098382949829]
+I0909 03:29:45.544134 140685206337344 resnet50.py:241] Running step 400 in epoch 4 [sec/step: 0.003914731740951538]
+I0909 03:29:46.362835 140685206337344 resnet50.py:241] Running step 600 in epoch 4 [sec/step: 0.0040923583507537845]
+I0909 03:29:47.175874 140685206337344 resnet50.py:241] Running step 800 in epoch 4 [sec/step: 0.004064061641693115]
+I0909 03:29:48.003965 140685206337344 resnet50.py:241] Running step 1000 in epoch 4 [sec/step: 0.004139328002929687]
+I0909 03:29:48.825008 140685206337344 resnet50.py:241] Running step 1200 in epoch 4 [sec/step: 0.004104001522064209]
+I0909 03:33:00.822505 140685206337344 resnet50.py:252] Training loss: 4.1044, accuracy: 36.05%
+I0909 03:33:00.822863 140685206337344 resnet50.py:254] Epoch time: 196.88495063781738; Seconds per step: 0.1573820548663608
+I0909 03:33:01.301195 140685206337344 resnet50.py:260] got test iterator
+I0909 03:33:01.301446 140685206337344 resnet50.py:264] Starting to run eval step 0 of epoch: 4
+I0909 03:33:01.367296 140685206337344 resnet50.py:264] Starting to run eval step 20 of epoch: 4
+I0909 03:33:01.430394 140685206337344 resnet50.py:264] Starting to run eval step 40 of epoch: 4
+I0909 03:33:10.217496 140685206337344 resnet50.py:272] Test loss: 3.3524, accuracy: 29.83%
+INFO:tensorflow:This might take a while...
+I0909 03:33:10.248613 140685206337344 model_saving_utils.py:43] This might take a while...
+WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+W0909 03:33:10.248949 140685206337344 saving_utils.py:319] Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+INFO:tensorflow:Saved model weights to gs://skypilot-pipeline-model/resnet-realImagenet-float16/saved_weights.h5...
+I0909 03:33:12.893599 140685206337344 model_saving_utils.py:51] Saved model weights to gs://skypilot-pipeline-model/resnet-realImagenet-float16/saved_weights.h5...
