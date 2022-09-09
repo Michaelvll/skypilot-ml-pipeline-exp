@@ -30,7 +30,7 @@ python3 resnet50_tpu/resnet50.py \
   --amp --xla --loss_scale=128 \
   2>&1 | tee run-realData-gpu-float16.log
 
-# Train, TPU AMP XLA float16.
+# Train, GPU AMP XLA float16.
 # num_cores=2 means the batch size is 256.
 python3 resnet50_tpu/resnet50.py \
   --tpu=$TPU_NAME \
