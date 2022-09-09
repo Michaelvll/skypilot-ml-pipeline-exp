@@ -66,10 +66,10 @@ class ImageNetInput(object):
     batch_size: The global batch size to use.
   """
 
-  def __init__(self, is_training, data_dir, batch_size, use_bfloat16=False):
+  def __init__(self, is_training, data_dir, batch_size, precision='float32'):
     self.image_preprocessing_fn = resnet_preprocessing.preprocess_image
     self.is_training = is_training
-    self.use_bfloat16 = use_bfloat16
+    self.precision = precision
     self.data_dir = data_dir
     self.batch_size = batch_size
 
@@ -102,7 +102,7 @@ class ImageNetInput(object):
     image = self.image_preprocessing_fn(
         image_bytes=image_bytes,
         is_training=self.is_training,
-        use_bfloat16=self.use_bfloat16)
+        precision=self.precision)
 
     # Subtract one so that labels are in [0, 1000), and cast to float32 for
     # Keras model.

@@ -22,11 +22,12 @@ easily adapt to your own datasets by changing the code appropriately.
 On tpu-v3-8, the batch size is 1024
 # Train, float32.
 python3 resnet50_tpu/resnet50.py \
-  --tpu=$TPU_NAME \
+  --tpu=gpu \
   --data=$DATA_DIR \
-  --use_bfloat16=False \
-  --model_dir=gs://resnet-test/resnet-realImagenet-float32 \
-    2>&1 | tee run-realData-float32.log
+  --precision=float16 \
+  --model_dir=gs://resnet-test/resnet-realImagenet-gpu \
+  --amp --xla --loss_scale=128 \
+  2>&1 | tee run-realData-float32.log
 """
 
 from __future__ import absolute_import
@@ -66,7 +67,7 @@ NUM_CLASSES = 1000
 
 # Training hyperparameters.
 _EPOCHS = 90
-_USE_BFLOAT16 = True
+_USE_BFLOAT16 = 'bfloat16'
 _BASE_LEARNING_RATE = 0.1
 DEFAULT_MODEL_DIR = '/tmp/resnet50'
 
@@ -75,7 +76,15 @@ flags.DEFINE_integer('num_epochs', _EPOCHS, '')
 flags.DEFINE_integer(
     'steps_per_epoch', None,
     'Steps for epoch during training. If unspecified, use default value.')
-flags.DEFINE_boolean('use_bfloat16', _USE_BFLOAT16, 'Use bfloat16 instead of float32.')
+flags.DEFINE_string('precision', _USE_BFLOAT16, 'float32, float16, bfloat16.')
+
+flags.DEFINE_bool(
+  'amp', False,
+  'Whether to use automated mixed precision.')
+flags.DEFINE_bool(
+  'xla', False,
+  'Whether to use accelerated linear algebra.')
+flags.DEFINE_integer('loss_scale', -1, 'Loss Scale for AMP.')
 
 # Learning rate schedule
 _LR_SCHEDULE = [    # (multiplier, epoch to start) tuples
@@ -117,6 +126,35 @@ def safe_mean(losses):
 
 
 def main(unused_argv):
+  use_gpu = (FLAGS.tpu is not None and FLAGS.tpu.lower() == 'gpu')
+  if use_gpu:
+    tf.keras.backend.image_data_format('channels_first')
+  assert use_gpu or (not FLAGS.amp and not FLAGS.xla), 'AMP and XLA only supported on GPU.'
+  if use_gpu:
+    # From Nvidia Repo, explained here: https://github.com/NVIDIA/DeepLearningExamples/issues/57
+    os.environ['CUDA_CACHE_DISABLE'] = '0'
+    os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+    os.environ['TF_GPU_THREAD_COUNT'] = '2'
+    os.environ['TF_USE_CUDNN_BATCHNORM_SPATIAL_PERSISTENT'] = '1'
+    os.environ['TF_ADJUST_HUE_FUSED'] = '1'
+    os.environ['TF_ADJUST_SATURATION_FUSED'] = '1'
+    os.environ['TF_ENABLE_WINOGRAD_NONFUSED'] = '1'
+    os.environ['TF_SYNC_ON_FINISH'] = '0'
+    os.environ['TF_AUTOTUNE_THRESHOLD'] = '2'
+    os.environ['TF_DISABLE_NVTX_RANGES'] = '1'
+  if FLAGS.amp:
+    os.environ["TF_ENABLE_AUTO_MIXED_PRECISION_GRAPH_REWRITE"] = "1"
+  if FLAGS.xla:
+    # https://github.com/tensorflow/tensorflow/blob/8d72537c6abf5a44103b57b9c2e22c14f5f49698/tensorflow/compiler/jit/flags.cc#L78-L87
+    # 1: on for things very likely to be improved
+    # 2: on for everything
+    # fusible: only for Tensorflow operations that XLA knows how to fuse
+    #
+    # os.environ['TF_XLA_FLAGS'] = '--tf_xla_auto_jit=1'
+    # os.environ['TF_XLA_FLAGS'] = '--tf_xla_auto_jit=2'
+    # Best Performing XLA Option
+    os.environ['TF_XLA_FLAGS'] = '--tf_xla_auto_jit=fusible'
+    os.environ["TF_XLA_FLAGS"] = (os.environ.get("TF_XLA_FLAGS", "") + " --tf_xla_enable_lazy_compilation=false")
   tf.enable_v2_behavior()
   model_dir = FLAGS.model_dir if FLAGS.model_dir else DEFAULT_MODEL_DIR
   batch_size = PER_CORE_BATCH_SIZE * FLAGS.num_cores
@@ -126,27 +164,33 @@ def main(unused_argv):
   logging.info('Saving checkpoints at %s', model_dir)
   logging.info('Use TPU at %s', FLAGS.tpu if FLAGS.tpu is not None else 'local')
 
-  resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu=FLAGS.tpu)
-  tf.config.experimental_connect_to_cluster(resolver)
-  tf.tpu.experimental.initialize_tpu_system(resolver)
-  strategy = tf.distribute.experimental.TPUStrategy(resolver)
+  if use_gpu:
+    strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(communication=tf.distribute.experimental.CollectiveCommunication.NCCL)
+  else:
+    resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu=FLAGS.tpu)
+    tf.config.experimental_connect_to_cluster(resolver)
+    tf.tpu.experimental.initialize_tpu_system(resolver)
+    strategy = tf.distribute.experimental.TPUStrategy(resolver)
 
   imagenet_train = imagenet_input.ImageNetInput(
       is_training=True,
       data_dir=FLAGS.data,
       batch_size=PER_CORE_BATCH_SIZE,
-      use_bfloat16=FLAGS.use_bfloat16)
+      precision=FLAGS.precision)
   imagenet_eval = imagenet_input.ImageNetInput(
       is_training=False,
       data_dir=FLAGS.data,
       batch_size=PER_CORE_BATCH_SIZE,
-      use_bfloat16=FLAGS.use_bfloat16)
+      precision=FLAGS.precision)
   train_dataset = strategy.experimental_distribute_datasets_from_function(
       imagenet_train.input_fn)
   test_dataset = strategy.experimental_distribute_datasets_from_function(
       imagenet_eval.input_fn)
 
-  if FLAGS.use_bfloat16:
+  if FLAGS.precision == 'float16':
+    policy = tf.keras.mixed_precision.experimental.Policy('mixed_float16')
+    tf.keras.mixed_precision.experimental.set_policy(policy)
+  elif FLAGS.precision = 'bfloat16':
     policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
     tf.keras.mixed_precision.experimental.set_policy(policy)
 
@@ -158,6 +202,8 @@ def main(unused_argv):
         learning_rate=ResnetLearningRateSchedule(steps_per_epoch, base_lr),
         momentum=0.9,
         nesterov=True)
+    if FLAGS.amp:
+      optimizer = tf.train.experimental.enable_mixed_precision_graph_rewrite(optimizer, loss_scale='dynamic' if FLAGS.loss_scale==-1 else FLAGS.loss_scale)
     training_loss = tf.keras.metrics.Mean('training_loss', dtype=tf.float32)
     training_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(
         'training_accuracy', dtype=tf.float32)
@@ -190,7 +236,7 @@ def main(unused_argv):
       images, labels = inputs
       with tf.GradientTape() as tape:
         predictions = model(images, training=True)
-        if FLAGS.use_bfloat16:
+        if FLAGS.precision != 'float32':
           predictions = tf.cast(predictions, tf.float32)
 
         # Loss calculations.
@@ -219,7 +265,7 @@ def main(unused_argv):
     def step_fn(inputs):
       images, labels = inputs
       predictions = model(images, training=False)
-      if FLAGS.use_bfloat16:
+      if FLAGS.precision != 'float32':
         predictions = tf.cast(predictions, tf.float32)
       loss = tf.keras.losses.sparse_categorical_crossentropy(labels,
                                                              predictions)
