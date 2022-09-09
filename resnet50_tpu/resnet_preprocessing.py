@@ -22,10 +22,6 @@ import tensorflow.compat.v1 as tf
 IMAGE_SIZE = 224
 CROP_PADDING = 32
 
-def _decode_and_crop_jpeg(image_bytes, crop_window):
-  channels = 3 if tf.keras.backend.image_data_format() == 'channels_last' else 0
-  return tf.image.decode_and_crop_jpeg(image_bytes, crop_window, channels)
-
 def distorted_bounding_box_crop(image_bytes,
                                 bbox,
                                 min_object_covered=0.1,
@@ -73,7 +69,7 @@ def distorted_bounding_box_crop(image_bytes,
     offset_y, offset_x, _ = tf.unstack(bbox_begin)
     target_height, target_width, _ = tf.unstack(bbox_size)
     crop_window = tf.stack([offset_y, offset_x, target_height, target_width])
-    image = _decode_and_crop_jpeg(image_bytes, crop_window)
+    image = tf.image.decode_and_crop_jpeg(image_bytes, crop_window, channels=3)
 
     return image
 
@@ -123,7 +119,7 @@ def _decode_and_center_crop(image_bytes):
   offset_width = ((image_width - padded_center_crop_size) + 1) // 2
   crop_window = tf.stack([offset_height, offset_width,
                           padded_center_crop_size, padded_center_crop_size])
-  image = _decode_and_crop_jpeg(image_bytes, crop_window)
+  image = tf.image.decode_and_crop_jpeg(image_bytes, crop_window, channels=3)
   image = tf.image.resize_bicubic([image], [IMAGE_SIZE, IMAGE_SIZE])[0]
 
   return image
@@ -147,10 +143,9 @@ def preprocess_for_train(image_bytes, precision):
   """
   image = _decode_and_random_crop(image_bytes)
   image = _flip(image)
-  if tf.keras.backend.image_data_format() == 'channels_last':
-    image = tf.reshape(image, [IMAGE_SIZE, IMAGE_SIZE, 3])
-  else:
-    image = tf.reshape(image, [3, IMAGE_SIZE, IMAGE_SIZE])
+  image = tf.reshape(image, [IMAGE_SIZE, IMAGE_SIZE, 3])
+  if tf.keras.backend.image_data_format() == 'channels_first':
+    image = tf.transpose(image, [2, 0, 1])
 
   if precision == 'bfloat16':
     image = tf.image.convert_image_dtype(image, dtype=tf.bfloat16)
@@ -174,10 +169,9 @@ def preprocess_for_eval(image_bytes, precision):
     A preprocessed image `Tensor`.
   """
   image = _decode_and_center_crop(image_bytes)
-  if tf.keras.backend.image_data_format() == 'channels_last':
-    image = tf.reshape(image, [IMAGE_SIZE, IMAGE_SIZE, 3])
-  else:
-    image = tf.reshape(image, [3, IMAGE_SIZE, IMAGE_SIZE])
+  image = tf.reshape(image, [IMAGE_SIZE, IMAGE_SIZE, 3])
+  if tf.keras.backend.image_data_format() == 'channels_first':
+    image = tf.transpose(image, [2, 0, 1])
 
   if precision == 'bfloat16':
     image = tf.image.convert_image_dtype(image, dtype=tf.bfloat16)
