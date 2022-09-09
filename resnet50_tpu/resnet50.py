@@ -28,7 +28,8 @@ python3 resnet50_tpu/resnet50.py \
   --data=$DATA_DIR \
   --precision=float16 \
   --model_dir=gs://resnet-test/resnet-realImagenet-gpu \
-  --num_cores=2 \
+  --num_cores=1 \
+  --per_core_batch_size=256 \
   --amp --xla --loss_scale=128 \
   2>&1 | tee run-realData-gpu-float16.log
 
@@ -68,12 +69,12 @@ flags.DEFINE_string(
     ('The directory where the model weights and training/evaluation summaries '
      'are stored. If not specified, save to /tmp/resnet50.'))
 flags.DEFINE_integer('num_cores', 8, 'Number of TPU cores.')
+flags.DEFINE_integer('FLAGS.per_core_batch_size', 128, 'Batch size per TPU core/GPU.')
 FLAGS = flags.FLAGS
 
 # Imagenet training and test data sets.
 APPROX_IMAGENET_TRAINING_IMAGES = 1281167  # Number of images in ImageNet-1k train dataset.
 IMAGENET_VALIDATION_IMAGES = 50000  # Number of images in eval dataset.
-PER_CORE_BATCH_SIZE = 128
 NUM_CLASSES = 1000
 
 # Training hyperparameters.
@@ -168,7 +169,7 @@ def main(unused_argv):
     os.environ["TF_XLA_FLAGS"] = (os.environ.get("TF_XLA_FLAGS", "") + " --tf_xla_enable_lazy_compilation=false")
   tf.enable_v2_behavior()
   model_dir = FLAGS.model_dir if FLAGS.model_dir else DEFAULT_MODEL_DIR
-  batch_size = PER_CORE_BATCH_SIZE * FLAGS.num_cores
+  batch_size = FLAGS.per_core_batch_size * FLAGS.num_cores
   steps_per_epoch = FLAGS.steps_per_epoch or (int(
       APPROX_IMAGENET_TRAINING_IMAGES // batch_size))
   steps_per_eval = int(1.0 * math.ceil(IMAGENET_VALIDATION_IMAGES / batch_size))
@@ -186,12 +187,12 @@ def main(unused_argv):
   imagenet_train = imagenet_input.ImageNetInput(
       is_training=True,
       data_dir=FLAGS.data,
-      batch_size=PER_CORE_BATCH_SIZE,
+      batch_size=FLAGS.per_core_batch_size,
       precision=FLAGS.precision)
   imagenet_eval = imagenet_input.ImageNetInput(
       is_training=False,
       data_dir=FLAGS.data,
-      batch_size=PER_CORE_BATCH_SIZE,
+      batch_size=FLAGS.per_core_batch_size,
       precision=FLAGS.precision)
   train_dataset = strategy.experimental_distribute_datasets_from_function(
       imagenet_train.input_fn)
