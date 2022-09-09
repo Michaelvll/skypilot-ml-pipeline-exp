@@ -41,5 +41,5 @@ def save_model(model, model_dir):
 
   tf.logging.info('This might take a while...')
   saved_weights_path = os.path.join(model_dir, 'saved_weights.h5')
-  model.save_weights(saved_weights_path)
+  model.save(saved_weights_path, include_optimizer=False, save_format='h5')
 
