@@ -31,10 +31,12 @@ python3 resnet50_tpu/resnet50.py \
   2>&1 | tee run-realData-gpu-float16.log
 
 # Train, TPU AMP XLA float16.
+# num_cores=2 means the batch size is 256.
 python3 resnet50_tpu/resnet50.py \
   --tpu=$TPU_NAME \
   --data=$DATA_DIR \
   --precision=bfloat16 \
+  --num_cores=2 \
   --model_dir=gs://resnet-test/resnet-realImagenet-gpu \
   2>&1 | tee run-realData-gpu-float16.log
 """
