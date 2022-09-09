@@ -17,7 +17,12 @@ model = ResNet50(1000)
 model.load_weights('saved_weights.h5')
 print(model.inputs[0].dtype)
 shutil.rmtree('tmp-model', ignore_errors=True)
-tf.saved_model.simple_save(session=keras.backend.get_session(), export_dir='tmp-model', inputs={'input': model.inputs[0]}, outputs={'output': model.outputs[0]})
+tf.saved_model.simple_save(
+    session=keras.backend.get_session(), 
+    export_dir='tmp-model', 
+    inputs={'input': model.inputs[0]}, 
+    outputs={'output': model.outputs[0]}
+)
 
 
 batch_sizes = [16]
