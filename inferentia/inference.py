@@ -87,8 +87,8 @@ for batch_size in batch_sizes:
             fut_list[i] = fut
         for i, fut in enumerate(fut_list):
             duration_ms[i] = fut.result()
-            if i % 100 == 0:
-                print(f'Finished {i}')
+            if i != 0 and i % 100 == 0:
+                print(f'Finished {i} -- avg duration: {np.mean(duration_ms[:i])} ms')
     elapsed_time = time.time() - start
 
     mean_latency = np.mean(duration_ms)
