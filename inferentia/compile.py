@@ -7,7 +7,6 @@ from resnet_model import ResNet50
 
 import os
 
-os.environ['NEURON_CC_FLAGS'] = '--fp32-cast=all'
 tf.keras.backend.set_learning_phase(0)
 tf.keras.backend.set_floatx('float16')
 
