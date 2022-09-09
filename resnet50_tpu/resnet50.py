@@ -20,7 +20,7 @@ Keras support. This is configured for ImageNet (e.g. 1000 classes), but you can
 easily adapt to your own datasets by changing the code appropriately.
 
 On tpu-v3-8, the batch size is 1024
-# Train, float16.
+# Train, GPU AMP XLA float16.
 export XLA_FLAGS='--xla_gpu_cuda_data_dir=/usr/local/cuda/' && \
 python3 resnet50_tpu/resnet50.py \
   --tpu=gpu \
@@ -28,7 +28,15 @@ python3 resnet50_tpu/resnet50.py \
   --precision=float16 \
   --model_dir=gs://resnet-test/resnet-realImagenet-gpu \
   --amp --xla --loss_scale=128 \
-  2>&1 | tee run-realData-float32.log
+  2>&1 | tee run-realData-gpu-float16.log
+
+# Train, TPU AMP XLA float16.
+python3 resnet50_tpu/resnet50.py \
+  --tpu=$TPU_NAME \
+  --data=$DATA_DIR \
+  --precision=bfloat16 \
+  --model_dir=gs://resnet-test/resnet-realImagenet-gpu \
+  2>&1 | tee run-realData-gpu-float16.log
 """
 
 from __future__ import absolute_import
