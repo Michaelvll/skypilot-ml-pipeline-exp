@@ -20,7 +20,8 @@ Keras support. This is configured for ImageNet (e.g. 1000 classes), but you can
 easily adapt to your own datasets by changing the code appropriately.
 
 On tpu-v3-8, the batch size is 1024
-# Train, float32.
+# Train, float16.
+export XLA_FLAGS='--xla_gpu_cuda_data_dir=/usr/local/cuda/' && \
 python3 resnet50_tpu/resnet50.py \
   --tpu=gpu \
   --data=$DATA_DIR \
@@ -190,7 +191,7 @@ def main(unused_argv):
   if FLAGS.precision == 'float16':
     policy = tf.keras.mixed_precision.experimental.Policy('mixed_float16')
     tf.keras.mixed_precision.experimental.set_policy(policy)
-  elif FLAGS.precision = 'bfloat16':
+  elif FLAGS.precision == 'bfloat16':
     policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
     tf.keras.mixed_precision.experimental.set_policy(policy)
 
