@@ -241,8 +241,6 @@ def main(unused_argv):
         logging.info(f'Running step {step} in epoch {epoch} [sec/step: {time_per_step}]')
         start_time = time.time()
       train_step(train_iterator)  
-    epoch_time = time.time() - epoch_start_time
-    logging.info(f'Epoch time: {epoch_time}; Seconds per step: {epoch_time / steps_per_epoch}')
     # tf.summary.scalar(
     #     'loss', training_loss.result().numpy(), step=optimizer.iterations)
     # tf.summary.scalar(
@@ -252,6 +250,9 @@ def main(unused_argv):
     logging.info('Training loss: %s, accuracy: %s%%',
                   round(training_loss.result().numpy(), 4),
                   round(training_accuracy.result().numpy() * 100, 2))
+    epoch_time = time.time() - epoch_start_time
+    logging.info(f'Epoch time: {epoch_time}; Seconds per step: {epoch_time / steps_per_epoch}')
+
     training_loss.reset_states()
     training_accuracy.reset_states()
 
