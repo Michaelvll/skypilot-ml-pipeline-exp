@@ -21,22 +21,22 @@ easily adapt to your own datasets by changing the code appropriately.
 
 On tpu-v3-8, the batch size is 1024
 # Train, GPU AMP XLA float16.
+# num_cores=2 means the batch size is 256.
 export XLA_FLAGS='--xla_gpu_cuda_data_dir=/usr/local/cuda/' && \
 python3 resnet50_tpu/resnet50.py \
   --tpu=gpu \
   --data=$DATA_DIR \
   --precision=float16 \
   --model_dir=gs://resnet-test/resnet-realImagenet-gpu \
+  --num_cores=2 \
   --amp --xla --loss_scale=128 \
   2>&1 | tee run-realData-gpu-float16.log
 
-# Train, GPU AMP XLA float16.
-# num_cores=2 means the batch size is 256.
+# Train, TPU bfloat16.
 python3 resnet50_tpu/resnet50.py \
   --tpu=$TPU_NAME \
   --data=$DATA_DIR \
   --precision=bfloat16 \
-  --num_cores=2 \
   --model_dir=gs://resnet-test/resnet-realImagenet-gpu \
   2>&1 | tee run-realData-gpu-float16.log
 """
