@@ -166,21 +166,21 @@ def main(unused_argv):
         'test_accuracy', dtype=tf.float32)
     logging.info('Finished building Keras ResNet-50 model')
 
-    checkpoint = tf.train.Checkpoint(model=model, optimizer=optimizer)
-    latest_checkpoint = tf.train.latest_checkpoint(model_dir)
+    # checkpoint = tf.train.Checkpoint(model=model, optimizer=optimizer)
     initial_epoch = 0
-    if latest_checkpoint:
-      # checkpoint.restore must be within a strategy.scope() so that optimizer
-      # slot variables are mirrored.
-      checkpoint.restore(latest_checkpoint)
-      logging.info('Loaded checkpoint %s', latest_checkpoint)
-      initial_epoch = optimizer.iterations.numpy() // steps_per_epoch
+    # latest_checkpoint = tf.train.latest_checkpoint(model_dir)
+    # if latest_checkpoint:
+    #   # checkpoint.restore must be within a strategy.scope() so that optimizer
+    #   # slot variables are mirrored.
+    #   checkpoint.restore(latest_checkpoint)
+    #   logging.info('Loaded checkpoint %s', latest_checkpoint)
+    #   initial_epoch = optimizer.iterations.numpy() // steps_per_epoch
 
   # Create summary writers
-  train_summary_writer = tf.summary.create_file_writer(
-      os.path.join(model_dir, 'summaries/train'))
-  test_summary_writer = tf.summary.create_file_writer(
-      os.path.join(model_dir, 'summaries/test'))
+  # train_summary_writer = tf.summary.create_file_writer(
+  #     os.path.join(model_dir, 'summaries/train'))
+  # test_summary_writer = tf.summary.create_file_writer(
+  #     os.path.join(model_dir, 'summaries/test'))
 
   @tf.function
   def train_step(iterator):
@@ -243,35 +243,34 @@ def main(unused_argv):
       train_step(train_iterator)  
     epoch_time = time.time() - epoch_start_time
     logging.info(f'Epoch time: {epoch_time}; Seconds per step: {epoch_time / steps_per_epoch}')
-      # tf.summary.scalar(
-      #     'loss', training_loss.result().numpy(), step=optimizer.iterations)
-      # tf.summary.scalar(
-      #     'accuracy',
-      #     training_accuracy.result().numpy(),
-      #     step=optimizer.iterations)
-      # logging.info('Training loss: %s, accuracy: %s%%',
-      #              round(training_loss.result().numpy(), 4),
-      #              round(training_accuracy.result().numpy() * 100, 2))
-      # training_loss.reset_states()
-      # training_accuracy.reset_states()
+    # tf.summary.scalar(
+    #     'loss', training_loss.result().numpy(), step=optimizer.iterations)
+    # tf.summary.scalar(
+    #     'accuracy',
+    #     training_accuracy.result().numpy(),
+    #     step=optimizer.iterations)
+    logging.info('Training loss: %s, accuracy: %s%%',
+                  round(training_loss.result().numpy(), 4),
+                  round(training_accuracy.result().numpy() * 100, 2))
+    training_loss.reset_states()
+    training_accuracy.reset_states()
 
-    with test_summary_writer.as_default():
-      test_iterator = iter(test_dataset)
-      logging.info('got test iterator')
-      for step in range(steps_per_eval):
-        if step % 20 == 0:
-          logging.info('Starting to run eval step %s of epoch: %s', step,
-                       epoch)
-        test_step(test_iterator)
-      tf.summary.scalar(
-          'loss', test_loss.result().numpy(), step=optimizer.iterations)
-      tf.summary.scalar(
-          'accuracy', test_accuracy.result().numpy(), step=optimizer.iterations)
-      logging.info('Test loss: %s, accuracy: %s%%',
-                   round(test_loss.result().numpy(), 4),
-                   round(test_accuracy.result().numpy() * 100, 2))
-      test_loss.reset_states()
-      test_accuracy.reset_states()
+    test_iterator = iter(test_dataset)
+    logging.info('got test iterator')
+    for step in range(steps_per_eval):
+      if step % 20 == 0:
+        logging.info('Starting to run eval step %s of epoch: %s', step,
+                      epoch)
+      test_step(test_iterator)
+    # tf.summary.scalar(
+    #     'loss', test_loss.result().numpy(), step=optimizer.iterations)
+    # tf.summary.scalar(
+    #     'accuracy', test_accuracy.result().numpy(), step=optimizer.iterations)
+    logging.info('Test loss: %s, accuracy: %s%%',
+                  round(test_loss.result().numpy(), 4),
+                  round(test_accuracy.result().numpy() * 100, 2))
+    test_loss.reset_states()
+    test_accuracy.reset_states()
 
     # checkpoint_name = checkpoint.save(os.path.join(model_dir, 'checkpoint'))
     model_saving_utils.save_model(model, model_dir)

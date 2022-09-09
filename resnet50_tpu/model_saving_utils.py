@@ -22,6 +22,7 @@ from __future__ import print_function
 import os
 
 import tensorflow.compat.v1 as tf
+from tensorflow.python.lib.io import file_io
 
 try:
   import h5py as _  # pylint: disable=g-import-not-at-top
@@ -40,6 +41,12 @@ def save_model(model, model_dir):
     return
 
   tf.logging.info('This might take a while...')
+  model.save('saved_weights.h5', include_optimizer=False, save_format='h5')
+
   saved_weights_path = os.path.join(model_dir, 'saved_weights.h5')
-  model.save(saved_weights_path, include_optimizer=False, save_format='h5')
+  # Copy model.h5 over to Google Cloud Storage
+  with file_io.FileIO('saved_weights.h5', mode='rb') as input_f:
+    with file_io.FileIO(saved_weights_path, mode='wb+') as output_f:
+      output_f.write(input_f.read())
+      tf.logging.info(f'Saved model weights to {saved_weights_path}...')
 
