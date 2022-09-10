@@ -69,7 +69,7 @@ flags.DEFINE_string(
     ('The directory where the model weights and training/evaluation summaries '
      'are stored. If not specified, save to /tmp/resnet50.'))
 flags.DEFINE_integer('num_cores', 8, 'Number of TPU cores.')
-flags.DEFINE_integer('FLAGS.per_core_batch_size', 128, 'Batch size per TPU core/GPU.')
+flags.DEFINE_integer('per_core_batch_size', 128, 'Batch size per TPU core/GPU.')
 FLAGS = flags.FLAGS
 
 # Imagenet training and test data sets.
