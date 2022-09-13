@@ -312,6 +312,8 @@ def main(unused_argv):
       return predictions
 
     values = strategy.run(step_fn, args=(images,))
+    if FLAGS.num_cores == 1:
+      return values
     return strategy.gather(values, axis=0)
 
   step_interval = 200
