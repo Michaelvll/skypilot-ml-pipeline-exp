@@ -80,7 +80,7 @@ flags.DEFINE_string(
      'are stored. If not specified, save to /tmp/resnet50.'))
 flags.DEFINE_integer('num_cores', 8, 'Number of TPU cores.')
 flags.DEFINE_integer('per_core_batch_size', 128, 'Batch size per TPU core/GPU.')
-flags.DEFINE_integer('infer_steps', 10000, 'Batch size per TPU core/GPU.')
+flags.DEFINE_integer('infer_images', 1000000, 'Batch size per TPU core/GPU.')
 flags.DEFINE_enum('mode', 'train', ['train', 'infer'], help='Mode to run: train or infer.')
 FLAGS = flags.FLAGS
 
@@ -315,7 +315,7 @@ def main(unused_argv):
   step_interval = 200
   train_iterator = iter(train_dataset)
   if FLAGS.mode == 'infer':
-    total_steps = FLAGS.infer_steps
+    total_steps = FLAGS.infer_images // FLAGS.per_core_batch_size
     warmup_inf_steps = 50
     counter = 0
     inf_times = []
@@ -341,15 +341,22 @@ def main(unused_argv):
         if counter >= total_steps + warmup_inf_steps:
             break
     inf_times = np.array(inf_times)
-    print('Throughput: ' + str(FLAGS.per_core_batch_size * FLAGS.infer_steps /
-                                np.sum(inf_times)) + 'samples/sec')
-    print('Mean Latency: ' + str(1000.0 * np.mean(inf_times)) + ' ms')
-    print('P90 Latency: ' + str(1000.0 * np.percentile(inf_times, 90)) +
-          ' ms')
-    print('P95 Latency: ' + str(1000.0 * np.percentile(inf_times, 95)) +
-          ' ms')
-    print('P99 Latency: ' + str(1000.0 * np.percentile(inf_times, 99)) +
-          ' ms')
+    import pandas as pd
+    throughput = FLAGS.infer_images / np.sum(inf_times)
+    mean_latency = 1000.0 * np.mean(inf_times)
+    P90_latency = 1000.0 * np.percentile(inf_times, 90)
+    P99_latency = 1000.0 * np.percentile(inf_times, 99)
+    
+    df = pd.DataFrame({
+        'batch_size': FLAGS.per_core_batch_size,
+        'throughput': throughput,
+        'p90_ms': P90_latency,
+        'p99_ms': P99_latency,
+        'mean_ms': mean_latency,
+        'num_images': counter * FLAGS.per_core_batch_size,
+    })
+    print(df)
+    df.to_csv('results.csv', index=False, header=True)
     return
   for epoch in range(initial_epoch, FLAGS.num_epochs):
     epoch_start_time = time.time()
