@@ -296,13 +296,14 @@ def main(unused_argv):
                                                               predictions)
         loss = safe_mean(loss)
         test_loss.update_state(loss)
-      test_accuracy.update_state(labels, predictions)
+        test_accuracy.update_state(labels, predictions)
 
     strategy.run(step_fn, args=(next(iterator),))
 
   step_interval = 200
   train_iterator = iter(train_dataset)
   if FLAGS.mode == 'infer':
+    tf.config.experimental.set_synchronous_execution(True)
     total_steps = FLAGS.infer_steps
     warmup_inf_steps = 50
     counter = 0
@@ -311,7 +312,6 @@ def main(unused_argv):
     while counter < total_steps + warmup_inf_steps:
         start_time = time.time()
         test_step(train_iterator)
-        test_accuracy.reset_states()
         end_time = time.time()
         if counter > warmup_inf_steps:
             inf_times.append(end_time - start_time)
