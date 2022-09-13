@@ -23,7 +23,7 @@ tf.saved_model.simple_save(
 )
 
 
-batch_sizes = [16]
+batch_sizes = [1, 2, 4, 8, 16]
 for batch_size in batch_sizes:
     example_input = np.zeros([batch_size, 224, 224, 3], dtype=np.float16)
 

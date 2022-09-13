@@ -40,7 +40,7 @@ throughputs = []
 COMPILED_MODEL_DIR = 'compiled-keras-resnet50'
 batch_sizes = [1]
 batch_sizes = [1, 2, 4, 8, 16]
-batch_sizes = [16]
+# batch_sizes = [16]
 
 for batch_size in batch_sizes:
     # for batch_size in [4]:

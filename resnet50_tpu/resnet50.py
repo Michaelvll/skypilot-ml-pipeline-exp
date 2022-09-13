@@ -292,17 +292,13 @@ def main(unused_argv):
     def step_fn(inputs):
       images, labels = inputs
       predictions = model(images, training=False)
-      if FLAGS.mode != 'infer':
-        if FLAGS.precision != 'float32':
-          predictions = tf.cast(predictions, tf.float32)
-        loss = tf.keras.losses.sparse_categorical_crossentropy(labels,
-                                                              predictions)
-        loss = safe_mean(loss)
-        test_loss.update_state(loss)
-        test_accuracy.update_state(labels, predictions)
-      else:
-        test_accuracy.update_state(labels, predictions)
-        return predictions
+      if FLAGS.precision != 'float32':
+        predictions = tf.cast(predictions, tf.float32)
+      loss = tf.keras.losses.sparse_categorical_crossentropy(labels,
+                                                            predictions)
+      loss = safe_mean(loss)
+      test_loss.update_state(loss)
+      test_accuracy.update_state(labels, predictions)
 
     strategy.run(step_fn, args=(next(iterator),))
 
