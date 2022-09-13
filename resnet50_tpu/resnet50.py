@@ -318,7 +318,8 @@ def main(unused_argv):
 
   if FLAGS.mode == 'infer':
     logging.info('Starting inference...')
-    total_steps = FLAGS.infer_images // FLAGS.per_core_batch_size
+    batch_size = FLAGS.per_core_batch_size * FLAGS.num_cores
+    total_steps = FLAGS.infer_images // batch_size
     warmup_inf_steps = 100
     counter = 0
     inf_times = []
@@ -352,15 +353,15 @@ def main(unused_argv):
     P99_latency = 1000.0 * np.percentile(inf_times, 99)
     
     df = pd.DataFrame({
-        'batch_size': [FLAGS.per_core_batch_size],
+        'batch_size': [batch_size],
         'throughput': [throughput],
         'p90_ms': [P90_latency],
         'p99_ms': [P99_latency],
         'mean_ms': [mean_latency],
-        'num_images': [(counter - warmup_inf_steps) * FLAGS.per_core_batch_size],
+        'num_images': [(counter - warmup_inf_steps) * batch_size],
     })
     print(df)
-    df.to_csv(f'results-{FLAGS.per_core_batch_size}.csv', index=False, header=True)
+    df.to_csv(f'results-{batch_size}.csv', index=False, header=True)
     return
   train_iterator = iter(train_dataset)
   for epoch in range(initial_epoch, FLAGS.num_epochs):
