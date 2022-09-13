@@ -151,8 +151,8 @@ def safe_mean(losses):
 
 def main(unused_argv):
   use_gpu = (FLAGS.tpu is not None and FLAGS.tpu.lower() == 'gpu')
-  if use_gpu:
-    tf.keras.backend.set_image_data_format('channels_first')
+  # if use_gpu:
+  #   tf.keras.backend.set_image_data_format('channels_first')
   assert use_gpu or (not FLAGS.amp and not FLAGS.xla), 'AMP and XLA only supported on GPU.'
   if use_gpu:
     # From Nvidia Repo, explained here: https://github.com/NVIDIA/DeepLearningExamples/issues/57
