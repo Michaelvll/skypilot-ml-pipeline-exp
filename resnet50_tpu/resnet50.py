@@ -337,7 +337,7 @@ def main(unused_argv):
     while counter < total_steps + warmup_inf_steps:
         start_time = time.time()
         batch = infer_step(model_feed_dict)
-        test_accuracy.result()
+        batch.numpy()
         end_time = time.time()
         test_accuracy.reset_states()
         if counter > warmup_inf_steps:
