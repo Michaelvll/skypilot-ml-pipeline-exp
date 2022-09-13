@@ -352,12 +352,12 @@ def main(unused_argv):
     P99_latency = 1000.0 * np.percentile(inf_times, 99)
     
     df = pd.DataFrame({
-        'batch_size': FLAGS.per_core_batch_size,
-        'throughput': throughput,
-        'p90_ms': P90_latency,
-        'p99_ms': P99_latency,
-        'mean_ms': mean_latency,
-        'num_images': counter * FLAGS.per_core_batch_size,
+        'batch_size': [FLAGS.per_core_batch_size],
+        'throughput': [throughput],
+        'p90_ms': [P90_latency],
+        'p99_ms': [P99_latency],
+        'mean_ms': [mean_latency],
+        'num_images': [(counter - warmup_inf_steps) * FLAGS.per_core_batch_size],
     })
     print(df)
     df.to_csv('results.csv', index=False, header=True)
