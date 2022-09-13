@@ -296,7 +296,7 @@ def main(unused_argv):
                                                               predictions)
         loss = safe_mean(loss)
         test_loss.update_state(loss)
-        test_accuracy.update_state(labels, predictions)
+      test_accuracy.update_state(labels, predictions)
 
     strategy.run(step_fn, args=(next(iterator),))
 
