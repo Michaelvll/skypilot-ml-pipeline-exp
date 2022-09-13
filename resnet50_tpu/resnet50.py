@@ -215,8 +215,8 @@ def main(unused_argv):
   if FLAGS.precision == 'bfloat16':
     policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
     tf.keras.mixed_precision.experimental.set_policy(policy)
-  # if FLAGS.mode == 'infer' and FLAGS.precision == 'float16':
-    # tf.keras.backend.set_floatx('float16')
+  elif FLAGS.mode == 'infer' and FLAGS.precision == 'float16':
+    tf.keras.backend.set_floatx('float16')
 
   with strategy.scope():
     logging.info('Building Keras ResNet-50 model')
