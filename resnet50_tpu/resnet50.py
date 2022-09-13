@@ -311,7 +311,8 @@ def main(unused_argv):
           predictions = tf.cast(predictions, tf.float32)
       return predictions
 
-    return strategy.run(step_fn, args=(images,))
+    values = strategy.run(step_fn, args=(images,))
+    return strategy.gather(values, axis=0)
 
   step_interval = 200
 
