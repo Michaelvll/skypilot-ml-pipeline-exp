@@ -43,6 +43,7 @@ python3 resnet50_tpu/resnet50.py \
 # Inference on GPU.
 python3 resnet50_tpu/resnet50.py \
   --tpu=gpu \
+  --data=$DATA_DIR \
   --precision=float16 \
   --model_dir=gs://resnet-test/resnet-realImagenet-gpu \
   --num_cores=1 \
@@ -80,7 +81,7 @@ flags.DEFINE_string(
 flags.DEFINE_integer('num_cores', 8, 'Number of TPU cores.')
 flags.DEFINE_integer('per_core_batch_size', 128, 'Batch size per TPU core/GPU.')
 flags.DEFINE_integer('infer_steps', 10000, 'Batch size per TPU core/GPU.')
-flags.DEFINE_enum('mode', 'train', ['train', 'infer'],)
+flags.DEFINE_enum('mode', 'train', ['train', 'infer'], help='Mode to run: train or infer.')
 FLAGS = flags.FLAGS
 
 # Imagenet training and test data sets.
@@ -306,12 +307,14 @@ def main(unused_argv):
     counter = 0
     inf_times = []
     while counter < total_steps + warmup_inf_steps:
-      for batch in test_step(train_iterator):
         start_time = time.time()
+        test_step(train_iterator)
+        test_accuracy.result()
+        end_time = time.time()
+        test_accuracy.reset_states()
         if counter > warmup_inf_steps:
             inf_times.append(start_time - end_time)
         counter += 1
-        end_time = time.time()
         if counter % 1000 == 0:
             print('Evaluation Iter ' + str(counter))
         if counter >= total_steps + warmup_inf_steps:
