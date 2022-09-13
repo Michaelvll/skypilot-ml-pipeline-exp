@@ -316,7 +316,7 @@ def main(unused_argv):
   train_iterator = iter(train_dataset)
   if FLAGS.mode == 'infer':
     total_steps = FLAGS.infer_images // FLAGS.per_core_batch_size
-    warmup_inf_steps = 50
+    warmup_inf_steps = 1000
     counter = 0
     inf_times = []
     import numpy as np
