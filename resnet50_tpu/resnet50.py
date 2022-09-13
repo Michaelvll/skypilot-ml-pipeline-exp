@@ -359,7 +359,7 @@ def main(unused_argv):
         'num_images': [(counter - warmup_inf_steps) * FLAGS.per_core_batch_size],
     })
     print(df)
-    df.to_csv('results.csv', index=False, header=True)
+    df.to_csv(f'results-{FLAGS.per_core_batch_size}.csv', index=False, header=True)
     return
   train_iterator = iter(train_dataset)
   for epoch in range(initial_epoch, FLAGS.num_epochs):
