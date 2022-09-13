@@ -316,6 +316,7 @@ def main(unused_argv):
   step_interval = 200
 
   if FLAGS.mode == 'infer':
+    logging.info('Starting inference...')
     total_steps = FLAGS.infer_images // FLAGS.per_core_batch_size
     warmup_inf_steps = 100
     counter = 0
@@ -338,7 +339,7 @@ def main(unused_argv):
             inf_times.append(end_time - start_time)
         counter += 1
         if counter % 1000 == 0:
-            print('Evaluation Iter ' + str(counter) + f'\nMean Latency: {np.mean(inf_times) * 1000:.2f} ms')
+            logging.info('Evaluation Iter ' + str(counter) + f'\nMean Latency: {np.mean(inf_times) * 1000:.2f} ms')
         if counter >= total_steps + warmup_inf_steps:
             break
     inf_times = np.array(inf_times)
