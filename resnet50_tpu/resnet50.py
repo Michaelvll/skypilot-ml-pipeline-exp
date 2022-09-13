@@ -306,20 +306,20 @@ def main(unused_argv):
     warmup_inf_steps = 50
     counter = 0
     inf_times = []
+    import numpy as np
     while counter < total_steps + warmup_inf_steps:
         start_time = time.time()
         test_step(train_iterator)
-        test_accuracy.result()
-        end_time = time.time()
         test_accuracy.reset_states()
+        end_time = time.time()
         if counter > warmup_inf_steps:
-            inf_times.append(start_time - end_time)
+            inf_times.append(end_time - start_time)
         counter += 1
+        print(counter)
         if counter % 1000 == 0:
-            print('Evaluation Iter ' + str(counter))
+            print('Evaluation Iter ' + str(counter) + f'\nMean Latency: {np.mean(inf_times) * 1000:.2f} ms')
         if counter >= total_steps + warmup_inf_steps:
             break
-    import numpy as np
     inf_times = np.array(inf_times)
     print('Throughput: ' + str(FLAGS.per_core_batch_size * FLAGS.infer_steps /
                                 np.sum(inf_times)) + 'samples/sec')
