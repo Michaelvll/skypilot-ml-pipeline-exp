@@ -303,18 +303,33 @@ def main(unused_argv):
 
     strategy.run(step_fn, args=(next(iterator),))
 
+  @tf.function
+  def infer_step(images):
+    """Inference StepFn."""
+    def step_fn(inputs):
+      predictions = model(inputs, training=False)
+      return predictions
+
+    return strategy.run(step_fn, args=(images,))
+
   step_interval = 200
   train_iterator = iter(train_dataset)
-  test_iterator = iter(test_dataset)
   if FLAGS.mode == 'infer':
     total_steps = FLAGS.infer_steps
     warmup_inf_steps = 50
     counter = 0
     inf_times = []
     import numpy as np
+    from tensorflow.keras.preprocessing import image
+    from tensorflow.keras.applications.resnet50 import preprocess_input
+    img_sgl = image.load_img('kitten_small.jpg', target_size=(224, 224))
+    img_arr = image.img_to_array(img_sgl)
+    img_arr2 = np.expand_dims(img_arr, axis=0)
+    img_arr3 = preprocess_input(np.repeat(img_arr2, FLAGS.per_core_batch_size, axis=0))
+    model_feed_dict = img_arr3
     while counter < total_steps + warmup_inf_steps:
         start_time = time.time()
-        batch = test_step(test_iterator)
+        batch = infer_step(model_feed_dict)
         test_accuracy.result()
         end_time = time.time()
         test_accuracy.reset_states()
