@@ -362,6 +362,7 @@ def main(unused_argv):
         'mean_ms': [mean_latency],
         'num_images': [(counter - warmup_inf_steps) * batch_size],
     })
+    print(shapes[0])
     print(df)
     df.to_csv(f'results-{batch_size}.csv', index=False, header=True)
     return
