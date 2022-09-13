@@ -196,20 +196,21 @@ def main(unused_argv):
     tf.tpu.experimental.initialize_tpu_system(resolver)
     strategy = tf.distribute.experimental.TPUStrategy(resolver)
 
-  imagenet_train = imagenet_input.ImageNetInput(
-      is_training=True,
-      data_dir=FLAGS.data,
-      batch_size=FLAGS.per_core_batch_size,
-      precision=FLAGS.precision)
-  imagenet_eval = imagenet_input.ImageNetInput(
-      is_training=False,
-      data_dir=FLAGS.data,
-      batch_size=FLAGS.per_core_batch_size,
-      precision=FLAGS.precision)
-  train_dataset = strategy.experimental_distribute_datasets_from_function(
-      imagenet_train.input_fn)
-  test_dataset = strategy.experimental_distribute_datasets_from_function(
-      imagenet_eval.input_fn)
+  if FLAGS.mode != 'infer':
+    imagenet_train = imagenet_input.ImageNetInput(
+        is_training=True,
+        data_dir=FLAGS.data,
+        batch_size=FLAGS.per_core_batch_size,
+        precision=FLAGS.precision)
+    imagenet_eval = imagenet_input.ImageNetInput(
+        is_training=False,
+        data_dir=FLAGS.data,
+        batch_size=FLAGS.per_core_batch_size,
+        precision=FLAGS.precision)
+    train_dataset = strategy.experimental_distribute_datasets_from_function(
+        imagenet_train.input_fn)
+    test_dataset = strategy.experimental_distribute_datasets_from_function(
+        imagenet_eval.input_fn)
 
   if FLAGS.precision == 'bfloat16':
     policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
@@ -313,7 +314,7 @@ def main(unused_argv):
     return strategy.run(step_fn, args=(images,))
 
   step_interval = 200
-  train_iterator = iter(train_dataset)
+
   if FLAGS.mode == 'infer':
     total_steps = FLAGS.infer_images // FLAGS.per_core_batch_size
     warmup_inf_steps = 100
@@ -358,6 +359,7 @@ def main(unused_argv):
     print(df)
     df.to_csv('results.csv', index=False, header=True)
     return
+  train_iterator = iter(train_dataset)
   for epoch in range(initial_epoch, FLAGS.num_epochs):
     epoch_start_time = time.time()
     logging.info('Starting to run epoch: %s', epoch)
