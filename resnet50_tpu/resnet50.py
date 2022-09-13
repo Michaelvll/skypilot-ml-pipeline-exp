@@ -311,6 +311,7 @@ def main(unused_argv):
     while counter < total_steps + warmup_inf_steps:
         start_time = time.time()
         test_step(train_iterator)
+        test_accuracy.reset_states()
         end_time = time.time()
         if counter > warmup_inf_steps:
             inf_times.append(end_time - start_time)
