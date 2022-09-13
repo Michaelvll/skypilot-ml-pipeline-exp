@@ -334,10 +334,11 @@ def main(unused_argv):
     img_arr2 = np.expand_dims(img_arr, axis=0)
     img_arr3 = preprocess_input(np.repeat(img_arr2, FLAGS.per_core_batch_size, axis=0))
     model_feed_dict = tf.convert_to_tensor(img_arr3, dtype=tf.float16)
+    shapes = []
     while counter < total_steps + warmup_inf_steps:
         start_time = time.time()
         batch = infer_step(model_feed_dict)
-        batch.numpy()
+        shapes.append(batch.numpy().shape)
         end_time = time.time()
         test_accuracy.reset_states()
         if counter > warmup_inf_steps:
