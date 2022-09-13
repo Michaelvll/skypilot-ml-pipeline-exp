@@ -315,7 +315,6 @@ def main(unused_argv):
         if counter > warmup_inf_steps:
             inf_times.append(end_time - start_time)
         counter += 1
-        print(counter)
         if counter % 1000 == 0:
             print('Evaluation Iter ' + str(counter) + f'\nMean Latency: {np.mean(inf_times) * 1000:.2f} ms')
         if counter >= total_steps + warmup_inf_steps:
