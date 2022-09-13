@@ -216,8 +216,8 @@ def main(unused_argv):
     policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
     tf.keras.mixed_precision.experimental.set_policy(policy)
   if FLAGS.mode == 'infer' and FLAGS.precision == 'float16':
-    policy = tf.keras.mixed_precision.experimental.Policy('mixed_float16')
-    tf.keras.mixed_precision.experimental.set_policy(policy)
+    policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
+    tf.keras.backend.set_floatx('float16')
 
   with strategy.scope():
     logging.info('Building Keras ResNet-50 model')
@@ -312,6 +312,8 @@ def main(unused_argv):
     """Inference StepFn."""
     def step_fn(inputs):
       predictions = model(inputs, training=False)
+      if FLAGS.precision != 'float32':
+          predictions = tf.cast(predictions, tf.float32)
       return predictions
 
     return strategy.run(step_fn, args=(images,))
