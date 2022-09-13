@@ -305,6 +305,7 @@ def main(unused_argv):
 
   step_interval = 200
   train_iterator = iter(train_dataset)
+  test_iterator = iter(test_dataset)
   if FLAGS.mode == 'infer':
     total_steps = FLAGS.infer_steps
     warmup_inf_steps = 50
@@ -313,7 +314,7 @@ def main(unused_argv):
     import numpy as np
     while counter < total_steps + warmup_inf_steps:
         start_time = time.time()
-        batch = test_step(train_iterator)
+        batch = test_step(test_iterator)
         test_accuracy.result()
         end_time = time.time()
         test_accuracy.reset_states()
