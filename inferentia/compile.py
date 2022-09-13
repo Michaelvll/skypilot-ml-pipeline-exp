@@ -6,8 +6,6 @@ import tensorflow.neuron as tfn
 import tensorflow.compat.v1.keras as keras
 from resnet_model import ResNet50
 
-import os
-
 keras.backend.set_learning_phase(0)
 keras.backend.set_floatx('float16')
 

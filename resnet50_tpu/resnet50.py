@@ -39,6 +39,16 @@ python3 resnet50_tpu/resnet50.py \
   --precision=bfloat16 \
   --model_dir=gs://resnet-test/resnet-realImagenet-gpu \
   2>&1 | tee run-realData-gpu-float16.log
+
+# Inference on GPU.
+python3 resnet50_tpu/resnet50.py \
+  --tpu=gpu \
+  --precision=float16 \
+  --model_dir=gs://resnet-test/resnet-realImagenet-gpu \
+  --num_cores=1 \
+  --mode=infer \
+  --per_core_batch_size=16 \
+  --amp --xla --loss_scale=128
 """
 
 from __future__ import absolute_import
@@ -69,6 +79,8 @@ flags.DEFINE_string(
      'are stored. If not specified, save to /tmp/resnet50.'))
 flags.DEFINE_integer('num_cores', 8, 'Number of TPU cores.')
 flags.DEFINE_integer('per_core_batch_size', 128, 'Batch size per TPU core/GPU.')
+flags.DEFINE_integer('infer_steps', 10000, 'Batch size per TPU core/GPU.')
+flags.DEFINE_enum('mode', 'train', ['train', 'infer'],)
 FLAGS = flags.FLAGS
 
 # Imagenet training and test data sets.
@@ -205,6 +217,9 @@ def main(unused_argv):
   with strategy.scope():
     logging.info('Building Keras ResNet-50 model')
     model = resnet_model.ResNet50(num_classes=NUM_CLASSES)
+    if FLAGS.mode == 'infer':
+      saved_weights = os.path.join(FLAGS.model_dir, 'saved_weights.h5')
+      model.load_weights(saved_weights)
     base_lr = _BASE_LEARNING_RATE * batch_size / 256
     optimizer = tf.keras.optimizers.SGD(
         learning_rate=ResnetLearningRateSchedule(steps_per_epoch, base_lr),
@@ -282,8 +297,37 @@ def main(unused_argv):
       test_accuracy.update_state(labels, predictions)
 
     strategy.run(step_fn, args=(next(iterator),))
+
   step_interval = 200
   train_iterator = iter(train_dataset)
+  if FLAGS.mode == 'infer':
+    total_steps = FLAGS.infer_steps
+    warmup_inf_steps = 50
+    counter = 0
+    inf_times = []
+    while counter < total_steps + warmup_inf_steps:
+      for batch in test_step(train_iterator):
+        start_time = time.time()
+        if counter > warmup_inf_steps:
+            inf_times.append(start_time - end_time)
+        counter += 1
+        end_time = time.time()
+        if counter % 1000 == 0:
+            print('Evaluation Iter ' + str(counter))
+        if counter >= total_steps + warmup_inf_steps:
+            break
+    import numpy as np
+    inf_times = np.array(inf_times)
+    print('Throughput: ' + str(FLAGS.per_core_batch_size * FLAGS.infer_steps /
+                                np.sum(inf_times)) + 'samples/sec')
+    print('Mean Latency: ' + str(1000.0 * np.mean(inf_times)) + ' ms')
+    print('P90 Latency: ' + str(1000.0 * np.percentile(inf_times, 90)) +
+          ' ms')
+    print('P95 Latency: ' + str(1000.0 * np.percentile(inf_times, 95)) +
+          ' ms')
+    print('P99 Latency: ' + str(1000.0 * np.percentile(inf_times, 99)) +
+          ' ms')
+    return
   for epoch in range(initial_epoch, FLAGS.num_epochs):
     epoch_start_time = time.time()
     logging.info('Starting to run epoch: %s', epoch)
