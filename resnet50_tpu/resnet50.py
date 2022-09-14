@@ -168,6 +168,7 @@ def main(unused_argv):
     os.environ['TF_AUTOTUNE_THRESHOLD'] = '2'
     os.environ['TF_DISABLE_NVTX_RANGES'] = '1'
   if FLAGS.amp:
+    os.environ['TF_ENABLE_AUTO_MIXED_PRECISION'] = '1'
     os.environ["TF_ENABLE_AUTO_MIXED_PRECISION_GRAPH_REWRITE"] = "1"
   if FLAGS.xla:
     # https://github.com/tensorflow/tensorflow/blob/8d72537c6abf5a44103b57b9c2e22c14f5f49698/tensorflow/compiler/jit/flags.cc#L78-L87
