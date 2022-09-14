@@ -276,7 +276,7 @@ def main(unused_argv):
         loss2 = tf.reduce_sum(model.losses)
 
         # Scale the loss given the TPUStrategy will reduce sum all gradients.
-        loss = loss1 + loss2
+        loss = loss1 + loss2 * 0.0001
         scaled_loss = loss / strategy.num_replicas_in_sync
 
       grads = tape.gradient(scaled_loss, model.trainable_variables)
