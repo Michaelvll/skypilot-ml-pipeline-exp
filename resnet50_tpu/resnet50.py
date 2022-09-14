@@ -167,9 +167,6 @@ def main(unused_argv):
     os.environ['TF_SYNC_ON_FINISH'] = '0'
     os.environ['TF_AUTOTUNE_THRESHOLD'] = '2'
     os.environ['TF_DISABLE_NVTX_RANGES'] = '1'
-  if FLAGS.amp:
-    os.environ['TF_ENABLE_AUTO_MIXED_PRECISION'] = '1'
-    os.environ["TF_ENABLE_AUTO_MIXED_PRECISION_GRAPH_REWRITE"] = "1"
   if FLAGS.xla:
     # https://github.com/tensorflow/tensorflow/blob/8d72537c6abf5a44103b57b9c2e22c14f5f49698/tensorflow/compiler/jit/flags.cc#L78-L87
     # 1: on for things very likely to be improved
@@ -217,6 +214,9 @@ def main(unused_argv):
   if FLAGS.precision == 'bfloat16':
     policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
     tf.keras.mixed_precision.experimental.set_policy(policy)
+  elif FLAGS.amp:
+    policy = tf.keras.mixed_precision.experimental.Policy('mixed_float16')
+    tf.keras.mixed_precision.experimental.set_policy(policy)
   # elif FLAGS.mode == 'infer' and FLAGS.precision == 'float16':
   #   tf.keras.backend.set_floatx('float16')
 
@@ -232,7 +232,11 @@ def main(unused_argv):
         momentum=0.9,
         nesterov=True)
     if FLAGS.amp:
-      optimizer = tf.train.experimental.enable_mixed_precision_graph_rewrite(optimizer, loss_scale='dynamic' if FLAGS.loss_scale==-1 else FLAGS.loss_scale)
+      if FLAGS.loss_scale is not None:
+        optimizer = tf.keras.mixed_precision.LossScaleOptimizer(optimizer, dynamic=False, initial_scale=FLAGS.loss_scale)
+      else:
+        optimizer = tf.keras.mixed_precision.LossScaleOptimizer(optimizer)
+        
     training_loss = tf.keras.metrics.Mean('training_loss', dtype=tf.float32)
     training_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(
         'training_accuracy', dtype=tf.float32)
