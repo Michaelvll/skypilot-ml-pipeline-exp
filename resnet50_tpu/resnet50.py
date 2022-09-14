@@ -265,8 +265,7 @@ def main(unused_argv):
       images, labels = inputs
       with tf.GradientTape() as tape:
         predictions = model(images, training=True)
-        if FLAGS.precision != 'float32':
-          predictions = tf.cast(predictions, tf.float32)
+        predictions = tf.cast(predictions, tf.float32)
 
         # Loss calculations.
         #
@@ -294,8 +293,7 @@ def main(unused_argv):
     def step_fn(inputs):
       images, labels = inputs
       predictions = model(images, training=False)
-      if FLAGS.precision != 'float32':
-        predictions = tf.cast(predictions, tf.float32)
+      predictions = tf.cast(predictions, tf.float32)
       loss = tf.keras.losses.sparse_categorical_crossentropy(labels,
                                                             predictions)
       loss = safe_mean(loss)
