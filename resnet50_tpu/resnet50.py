@@ -283,8 +283,12 @@ def main(unused_argv):
         # Scale the loss given the TPUStrategy will reduce sum all gradients.
         loss = loss1 + loss2
         scaled_loss = loss / strategy.num_replicas_in_sync
+        if FLAGS.amp:
+          scaled_loss = optimizer.get_scaled_loss(scaled_loss)
 
       grads = tape.gradient(scaled_loss, model.trainable_variables)
+      if FLAGS.amp:
+        grads = optimizer.get_unscaled_gradients(grads)
       optimizer.apply_gradients(zip(grads, model.trainable_variables))
       training_loss.update_state(loss)
       training_accuracy.update_state(labels, predictions)
