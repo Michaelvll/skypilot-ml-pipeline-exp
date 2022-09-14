@@ -275,7 +275,7 @@ def main(unused_argv):
         #
         # Part 1: Prediction loss.
         prediction_loss = tf.keras.losses.sparse_categorical_crossentropy(
-            labels, predictions)
+            labels, predictions, from_logits=True)
         loss1 = tf.reduce_mean(prediction_loss)
         # Part 2: Model weights regularization
         loss2 = tf.reduce_sum(model.losses)
@@ -303,7 +303,7 @@ def main(unused_argv):
       predictions = model(images, training=False)
       predictions = tf.cast(predictions, tf.float32)
       loss = tf.keras.losses.sparse_categorical_crossentropy(labels,
-                                                            predictions)
+                                                            predictions, from_logits=True)
       loss = safe_mean(loss)
       test_loss.update_state(loss)
       test_accuracy.update_state(labels, predictions)
