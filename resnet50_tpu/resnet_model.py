@@ -266,6 +266,7 @@ def ResNet50(num_classes):
   x = tf.keras.layers.GlobalAveragePooling2D(name='avg_pool')(x)
   x = tf.keras.layers.Dense(
       num_classes,
+      activation='softmax',
       kernel_initializer=tf.keras.initializers.RandomNormal(
           stddev=0.01),
       kernel_regularizer=tf.keras.regularizers.l2(L2_WEIGHT_DECAY),
