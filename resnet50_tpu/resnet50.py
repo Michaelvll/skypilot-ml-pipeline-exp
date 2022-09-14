@@ -21,11 +21,12 @@ easily adapt to your own datasets by changing the code appropriately.
 
 On tpu-v3-8, the batch size is 1024
 # Train, GPU AMP XLA float16.
+# Use precision=float32 as AMP will take care of the model precision.
 export XLA_FLAGS='--xla_gpu_cuda_data_dir=/usr/local/cuda/' && \
 python3 resnet50_tpu/resnet50.py \
   --tpu=gpu \
   --data=$DATA_DIR \
-  --precision=float16 \
+  --precision=float32 \
   --model_dir=gs://resnet-test/resnet-realImagenet-gpu \
   --num_cores=1 \
   --per_core_batch_size=256 \
@@ -44,7 +45,7 @@ python3 resnet50_tpu/resnet50.py \
 python3 resnet50_tpu/resnet50.py \
   --tpu=gpu \
   --data=$DATA_DIR \
-  --precision=float16 \
+  --precision=float32 \
   --model_dir=gs://resnet-test/resnet-realImagenet-gpu \
   --num_cores=1 \
   --mode=infer \
@@ -276,7 +277,7 @@ def main(unused_argv):
         loss2 = tf.reduce_sum(model.losses)
 
         # Scale the loss given the TPUStrategy will reduce sum all gradients.
-        loss = loss1 + loss2 * 0.0001
+        loss = loss1 + loss2
         scaled_loss = loss / strategy.num_replicas_in_sync
 
       grads = tape.gradient(scaled_loss, model.trainable_variables)
